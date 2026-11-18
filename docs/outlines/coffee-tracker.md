@@ -71,8 +71,6 @@ The screens should be clean and easy to navigate, especially when first opened i
 Design for a phone first, with readable recipe steps and large, easy-to-tap controls; the same
 information should remain usable on desktop.
 
-## Still to decide
-
 ## Not in the first version
 
 - AI suggestions to improve a brew based on its rating and notes.
