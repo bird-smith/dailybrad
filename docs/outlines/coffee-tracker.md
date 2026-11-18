@@ -1,12 +1,14 @@
 # Coffee Tracker
 
-**Status:** approved, 2026-11-18.
+**Status:** draft, 2026-11-18 (revised after approval: new ideas and a fuller look and feel
+for review).
 
 ## The pitch
 
 Make it easy to choose and brew a good coffee in the morning, without the complexity of a
 general-purpose coffee app. Keep the daily steps clear and uncluttered, while saving enough
-brew history to find which beans, methods and recipes I enjoy.
+brew history to find which beans, methods and recipes I enjoy. It should feel like a
+beautiful object to use, not a spreadsheet.
 
 ## The first version
 
@@ -29,11 +31,14 @@ brew history to find which beans, methods and recipes I enjoy.
   days since its roast date, the method, the recipe, and the settings actually used (grinder,
   grind size, dose, water, temperature, pours, bloom, brew time and method-specific steps).
   These are filled in from the recipe and I can change any of them before saving, so editing
-  a recipe later never rewrites past brews.
+  a recipe later never rewrites past brews. I can fix or delete a brew I logged by mistake.
 - **Rating:** Each brew gets one simple 1-to-5 rating, with an optional note, entered after
   tasting. The rating reflects the bean, method, recipe and how that brew turned out
   together. A brew I haven't rated yet shows as "rate me" on the home screen and is left out
   of averages.
+- **Home screen:** Opens straight to today: my active bean (with days since roast), a
+  "rate me" card if the last brew is unrated, and one large button to start a brew. History,
+  beans and recipes are one tap away, not on top.
 - **Choosing a brew:** I can repeat my latest brew for the chosen method (same recipe, dose
   and grind), try a recommended brew, or choose another saved recipe. I can set an active
   bean, which is selected by default, and switch bags easily.
@@ -59,8 +64,8 @@ brew history to find which beans, methods and recipes I enjoy.
 
 **Make a brew:**
 
-1. I choose a brewing method.
-2. My active bean is already selected; I can switch to another bean.
+1. I open the site: the home screen shows my active bean and a big "Brew" button.
+2. I choose a brewing method. My active bean is already selected; I can switch to another.
 3. I choose to repeat my latest brew, try a recommended brew, or pick another saved recipe.
 4. I set today's coffee dose in grams. The recipe's ratio calculates total water and scales
    each percentage-based pour. I can tweak any other setting, such as grind size, for today.
@@ -85,9 +90,52 @@ These percentages illustrate the calculation, not a recommended recipe.
 
 ## Look and feel
 
-The screens should be clean and easy to navigate, especially when first opened in the morning.
-Design for a phone first, with readable recipe steps and large, easy-to-tap controls; the same
-information should remain usable on desktop.
+**The goal is elegant and calm**: something pleasant to open half-awake at 7am, closer to a
+well-made café menu card or a Japanese brewing guide than to a fitness app.
+
+- **Restraint over decoration.** One main action per screen. No dashboards of charts, no
+  badges, no clutter. Elegance comes from good type, spacing and alignment, not ornaments,
+  so screens can stay compact on a phone without feeling crowded.
+- **Warm, quiet colours.** A soft cream background, deep espresso-brown text, and a single
+  muted accent (for example a warm copper) used only for the main button and highlights.
+- **Dark mode for early mornings.** Follows the phone's light/dark setting: a near-black
+  warm brown background with cream text, so it isn't glaring in a dark kitchen.
+- **Typography does the work.** A refined serif for headings and the big numbers (dose,
+  water, pour targets), a clean, simple font for everything else. Numbers line up neatly in
+  columns.
+- **Big, readable numbers while brewing.** During a brew, the dose, water and next pour are
+  large enough to read from arm's length with wet hands; buttons are large and well spaced.
+- **Gentle motion only.** Soft fades between screens and a subtle response when tapping.
+  Nothing bouncy or flashy.
+- **Ratings look tasteful.** Five simple dots or beans rather than cartoon stars.
+- **Desktop:** the same look, using the extra width for side-by-side views (for example,
+  the history list next to a brew's details) rather than stretching phone screens.
+
+## Still to decide
+
+Ideas from looking at other brewing apps (Beanconqueror, Timer.Coffee, Gota, Simple Cup,
+Tempo). Each fits the "simple, morning-friendly" goal; none is required.
+
+- [ ] **Show pours as running totals?** At the scale I watch the total climb, so the screen
+  would say "pour to 27 g, then to 135 g, then to 270 g" instead of the separate amounts.
+  *Recommend: yes, show running totals large and the separate amounts small.* Costs almost
+  nothing and removes mental maths mid-pour.
+- [ ] **A guided brew timer?** A start button, then each step (bloom, each pour, valve
+  open/close) appears in turn with a countdown, and the final time fills in the brew log
+  automatically. This is the main feature of most apps I looked at. *Recommend: yes, but
+  simple: one step on screen at a time, and the screen stays awake while it runs.* It is the
+  piece that makes the app feel elegant in daily use.
+- [ ] **Coffee left in the bag and cost per cup?** Bag size minus logged doses gives "about
+  9 cups left"; cost divided by bag size gives cost per cup (a 340 g bag at $22, 18 g dose:
+  about $1.16 a cup). Uses details I already enter. *Recommend: yes, shown quietly on the
+  bean card.*
+- [ ] **Quick taste taps with the rating?** Optional one-tap words such as "sour", "bitter",
+  "weak", "strong", "balanced", so I can note what was off without typing. *Recommend: yes,
+  optional and next to the note.* They make later "what went wrong" comparisons much
+  easier, and would feed the AI suggestions idea later.
+- [ ] **Recommendations across all beans:** a recipe that's great with one bean may be poor
+  with another. *Recommend: keep "across all beans" for the first version, but show the
+  current bean's own average next to it once it has a few brews.*
 
 ## Not in the first version
 
@@ -95,6 +143,9 @@ information should remain usable on desktop.
 - Finding and sourcing recipes online; work out the best sources and approach in a future step.
 - Grinder-size comparisons that translate settings between different grinders.
 - Working with no internet connection.
+- Connecting a Bluetooth scale to fill in weights automatically (several apps do this; it's
+  a large job for a small gain).
+- Charts of ratings over time.
 
 ## Plans
 
