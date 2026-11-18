@@ -15,17 +15,19 @@ brew history to find which beans, methods and recipes I enjoy.
 - **Beans:** I can add a coffee's roaster, roast date, name, bag size, cost, region, varietal
   and tasting notes. Brew ratings come from my daily logs rather than a separate bean rating.
 - **Recipes:** I can save named recipes for a method, including ratio, grinder, grind size,
-  coffee dose, resulting water amount, temperature, pouring structure, bloom and total brew
-  time, and notes. Fields that do not apply to a method can be left out.
+  coffee dose, resulting water amount, temperature, pouring structure (including number of
+  pours), bloom and total brew time, and notes. A recipe can also include method-specific
+  steps, such as opening or closing the Hario Switch valve. The useful details can become
+  clearer as I save and use recipes.
 - **Dose and water:** Before brewing, I can choose how many grams of coffee to use. The
   recipe's ratio calculates total water, and pours saved as percentages of total water scale
   to match.
 - **Brew logging:** Each brew gets one simple 1-to-5 rating, with an optional
   note. The rating reflects the bean, method, recipe and how that brew turned out together.
 - **Choosing a brew:** I can repeat my latest brew, try a recommended brew, or choose another
-  saved recipe. My active bean is selected by default, and I can switch it.
+  saved recipe. I can set an active bean, which is selected by default, and switch bags easily.
 - **Recommendations:** Show both recipes I have saved and recipes recommended from online
-  sources. How online recipes are collected and shown still needs to be decided.
+  sources. Saved recipes can be compared by their average brew rating.
 - **Backups:** Export and import my data. It stays in this browser and will not sync to a
   phone, computer or another browser.
 
@@ -74,15 +76,6 @@ information should remain usable on desktop.
 - [ ] **How should online recipes be sourced?** Recommended: start with a small, selected set
   of recipes with a link to each source, rather than trying to collect recipes automatically
   from changing websites and Reddit posts.
-- [ ] **How should recommendations use brew ratings?** Recommended: show a saved recipe's
-  average rating for the same bean and method after it has enough ratings, and label recipes
-  without personal ratings as untried. Decide how many ratings are enough.
-- [ ] **What recipe details differ by brewing method?** Recommended: keep shared details
-  together, and show method-specific steps only where they are useful. Confirm which extra
-  details, if any, matter for espresso and other methods.
-- [ ] **What happens when I have more than one open bag?** Recommended: let me mark one as
-  active and make it easy to switch during brew setup.
-
 ## Not in the first version
 
 - AI suggestions to improve a brew based on its rating and notes.
