@@ -17,8 +17,8 @@ brew history to find which beans, methods and recipes I enjoy.
 - **Recipes:** I can save named recipes for a method, including ratio, grinder, grind size,
   coffee dose, resulting water amount, temperature, pouring structure (including number of
   pours), bloom and total brew time, and notes. A recipe can also include method-specific
-  steps, such as opening or closing the Hario Switch valve. The useful details can become
-  clearer as I save and use recipes.
+  steps, such as opening or closing the Hario Switch valve. I add the known recipes I want to
+  use for each method; the useful details can become clearer as I save and use recipes.
 - **Dose and water:** Before brewing, I can choose how many grams of coffee to use. The
   recipe's ratio calculates total water, and pours saved as percentages of total water scale
   to match.
@@ -26,8 +26,8 @@ brew history to find which beans, methods and recipes I enjoy.
   note. The rating reflects the bean, method, recipe and how that brew turned out together.
 - **Choosing a brew:** I can repeat my latest brew, try a recommended brew, or choose another
   saved recipe. I can set an active bean, which is selected by default, and switch bags easily.
-- **Recommendations:** Show both recipes I have saved and recipes recommended from online
-  sources. Saved recipes can be compared by their average brew rating.
+- **Recommendations:** Suggest my saved recipes based on their average brew ratings. I can
+  also choose any saved recipe, including ones I have not rated yet.
 - **Backups:** Export and import my data. It stays in this browser and will not sync to a
   phone, computer or another browser.
 
@@ -37,7 +37,7 @@ brew history to find which beans, methods and recipes I enjoy.
 
 1. I add the brewing methods I use.
 2. I add the beans I have, including any details I want to remember.
-3. I save recipes I want to repeat, or choose from recipes recommended by the tool.
+3. I add the recipes I already know and want to try for each method.
 
 **Make a brew:**
 
@@ -73,13 +73,10 @@ information should remain usable on desktop.
 
 ## Still to decide
 
-- [ ] **How should online recipes be sourced?** Recommended: start with a small, selected set
-  of recipes with a link to each source, rather than trying to collect recipes automatically
-  from changing websites and Reddit posts.
 ## Not in the first version
 
 - AI suggestions to improve a brew based on its rating and notes.
-- Better ways to find, compare and add online recipes.
+- Finding and sourcing recipes online; work out the best sources and approach in a future step.
 - Grinder-size comparisons that translate settings between different grinders.
 - Automatic syncing between devices. The first version uses this browser's storage and relies
   on export and import for moving or backing up data.
