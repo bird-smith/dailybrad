@@ -28,16 +28,20 @@ brew history to find which beans, methods and recipes I enjoy.
   saved recipe. I can set an active bean, which is selected by default, and switch bags easily.
 - **Recommendations:** Suggest my saved recipes based on their average brew ratings. I can
   also choose any saved recipe, including ones I have not rated yet.
-- **Backups:** Export and import my data. It stays in this browser and will not sync to a
-  phone, computer or another browser.
+- **Saved online:** Everything saves to an online database as I go, so my phone and computer
+  show the same beans, recipes and brews. Clearing the browser loses nothing.
+- **Sign-in:** I sign in once on each device and stay signed in. Only I can see or change my
+  data, even though the site's code is public.
+- **Backups:** Export my data to a file, and import it again, as a safety copy.
 
 ## How it works
 
 **Set up:**
 
-1. I add the brewing methods I use.
-2. I add the beans I have, including any details I want to remember.
-3. I add the recipes I already know and want to try for each method.
+1. I sign in on my phone and my computer.
+2. I add the brewing methods I use.
+3. I add the beans I have, including any details I want to remember.
+4. I add the recipes I already know and want to try for each method.
 
 **Make a brew:**
 
@@ -71,13 +75,34 @@ The screens should be clean and easy to navigate, especially when first opened i
 Design for a phone first, with readable recipe steps and large, easy-to-tap controls; the same
 information should remain usable on desktop.
 
+## Still to decide
+
+- [ ] **What a brew remembers.** If I tweak the grind or dose on the day, is that saved with
+  the brew? Recommended: yes. Each brew keeps a copy of the settings actually used (dose,
+  grind, water), pre-filled from the recipe and editable before saving. Otherwise editing a
+  recipe later rewrites history, and the tracker can't show which grind worked best.
+- [ ] **Sign-in method.** Recommended: email and password. It works the same on every
+  device; "email me a link" often opens in the wrong browser on a phone.
+- [ ] **No internet in the kitchen.** Recommended: the site says plainly that it couldn't
+  save and keeps what I typed so I can retry. Full offline use is parked.
+- [ ] **Unrated brews.** I save the brew, then rate it after tasting. Recommended: a brew
+  without a rating shows as "rate me" on the home screen and is left out of averages.
+- [ ] **How recommendations rank.** Recommended: for the chosen method, recipes are ranked
+  by average rating across all beans, showing how many brews each average is based on, so
+  one lucky 5 doesn't look like a sure thing.
+- [ ] **"Repeat my latest brew".** Recommended: the latest brew for the chosen method, with
+  the same recipe, dose and grind.
+- [ ] **Finished bags.** Recommended: I can mark a bag finished; it leaves the bean picker
+  but its brews stay in the history.
+- [ ] **Methods without pours.** The Cafelat Robot (and maybe the OXO) has no pours.
+  Recommended: pours are optional; a recipe can be just dose, ratio and steps.
+
 ## Not in the first version
 
 - AI suggestions to improve a brew based on its rating and notes.
 - Finding and sourcing recipes online; work out the best sources and approach in a future step.
 - Grinder-size comparisons that translate settings between different grinders.
-- Automatic syncing between devices. The first version uses this browser's storage and relies
-  on export and import for moving or backing up data.
+- Working with no internet connection.
 
 ## Plans
 
