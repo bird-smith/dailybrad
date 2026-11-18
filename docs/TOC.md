@@ -16,7 +16,7 @@ Every feature in build order, one line each. Detail lives in the plans.
 
 Outline: `docs/outlines/coffee-tracker.md` (split into plans). Plans: `docs/plans/1/`.
 
-- [ ] [ ] [ ] 1.1-look-and-sign-in: database, sign-in, colours and fonts, home screen
+- [x] [ ] [ ] 1.1-look-and-sign-in: database, sign-in, colours and fonts, home screen
 - [ ] [ ] [ ] 1.2-methods-and-beans: add methods and beans, active bean
 - [ ] [ ] [ ] 1.3-recipes: saved recipes with pours and steps
 - [ ] [ ] [ ] 1.4-brew-setup: choose a brew, set dose, see water and pours
