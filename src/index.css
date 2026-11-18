@@ -1,1 +1,72 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/source-serif-4';
+@import '@fontsource-variable/inter';
+
+/* Colours named by job, not by coffee, so any section can use them. */
+:root {
+  --paper: #f5efe6;
+  --ink: #2b1d14;
+  --muted: #7a6656;
+  --line: #e2d6c6;
+  --accent: #a6603a;
+  --on-accent: #fff8f0;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1411;
+    --ink: #f1e7da;
+    --muted: #a8978a;
+    --line: #3a2e27;
+    --accent: #c98352;
+    --on-accent: #1a1411;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --font-serif: 'Source Serif 4 Variable', Georgia, serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-paper font-sans text-ink antialiased;
+}
+
+/* A gentle fade-in for each screen. */
+@keyframes screen-in {
+  from {
+    opacity: 0;
+  }
+}
+.screen-in {
+  animation: screen-in 150ms ease-out;
+}
+
+/* A slight press response on buttons. */
+.press {
+  transition:
+    transform 100ms,
+    opacity 100ms;
+}
+.press:active {
+  transform: scale(0.98);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-in {
+    animation: none;
+  }
+  .press,
+  .press:active {
+    transition: none;
+    transform: none;
+  }
+}
