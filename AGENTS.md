@@ -95,7 +95,8 @@ Known limits:
 
 - Every screen works at phone width (about 375px) and on desktop. Phone first: he'll log
   coffee on his phone in the kitchen, so big tap targets and as little typing as possible.
-- Keep screens dense: vertical space on a phone is scarce.
+- Keep screens elegant and minimal: one main action per screen, room to breathe, and
+  nothing on screen that isn't needed right now.
 - Rules and sums get a Vitest test. Looks don't: list them for him to eyeball instead.
 - React component files `PascalCase.tsx`, other code files `camelCase.ts`, constants
   `SCREAMING_SNAKE_CASE`.
