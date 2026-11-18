@@ -1,6 +1,6 @@
 # Coffee Tracker
 
-**Status:** draft, 2026-11-18.
+**Status:** approved, 2026-11-18.
 
 ## The pitch
 
@@ -14,24 +14,38 @@ brew history to find which beans, methods and recipes I enjoy.
   Brewer and Cafelat Robot.
 - **Beans:** I can add a coffee's roaster, roast date, name, bag size, cost, region, varietal
   and tasting notes. Brew ratings come from my daily logs rather than a separate bean rating.
+  I can mark a bag finished: it leaves the bean picker, but its brews stay in the history.
 - **Recipes:** I can save named recipes for a method, including ratio, grinder, grind size,
   coffee dose, resulting water amount, temperature, pouring structure (including number of
   pours), bloom and total brew time, and notes. A recipe can also include method-specific
   steps, such as opening or closing the Hario Switch valve. I add the known recipes I want to
   use for each method; the useful details can become clearer as I save and use recipes.
+  Pours are optional, so a recipe for a method without pours (such as the Cafelat Robot) can
+  be just dose, ratio and steps.
 - **Dose and water:** Before brewing, I can choose how many grams of coffee to use. The
   recipe's ratio calculates total water, and pours saved as percentages of total water scale
   to match.
-- **Brew logging:** Each brew gets one simple 1-to-5 rating, with an optional
-  note. The rating reflects the bean, method, recipe and how that brew turned out together.
-- **Choosing a brew:** I can repeat my latest brew, try a recommended brew, or choose another
-  saved recipe. I can set an active bean, which is selected by default, and switch bags easily.
-- **Recommendations:** Suggest my saved recipes based on their average brew ratings. I can
-  also choose any saved recipe, including ones I have not rated yet.
+- **Brew logging:** Each brew records everything that could affect it: the bean, how many
+  days since its roast date, the method, the recipe, and the settings actually used (grinder,
+  grind size, dose, water, temperature, pours, bloom, brew time and method-specific steps).
+  These are filled in from the recipe and I can change any of them before saving, so editing
+  a recipe later never rewrites past brews.
+- **Rating:** Each brew gets one simple 1-to-5 rating, with an optional note, entered after
+  tasting. The rating reflects the bean, method, recipe and how that brew turned out
+  together. A brew I haven't rated yet shows as "rate me" on the home screen and is left out
+  of averages.
+- **Choosing a brew:** I can repeat my latest brew for the chosen method (same recipe, dose
+  and grind), try a recommended brew, or choose another saved recipe. I can set an active
+  bean, which is selected by default, and switch bags easily.
+- **Recommendations:** For the chosen method, my saved recipes are ranked by their average
+  rating across all beans, showing how many brews each average is based on, so one lucky 5
+  doesn't look like a sure thing. I can also choose any saved recipe, including unrated ones.
 - **Saved online:** Everything saves to an online database as I go, so my phone and computer
   show the same beans, recipes and brews. Clearing the browser loses nothing.
-- **Sign-in:** I sign in once on each device and stay signed in. Only I can see or change my
-  data, even though the site's code is public.
+- **Sign-in:** I sign in once on each device with email and password, and stay signed in.
+  Only I can see or change my data, even though the site's code is public.
+- **No connection:** If saving fails (for example, no internet in the kitchen), the site
+  says so plainly and keeps what I typed so I can try again.
 - **Backups:** Export my data to a file, and import it again, as a safety copy.
 
 ## How it works
@@ -49,7 +63,7 @@ brew history to find which beans, methods and recipes I enjoy.
 2. My active bean is already selected; I can switch to another bean.
 3. I choose to repeat my latest brew, try a recommended brew, or pick another saved recipe.
 4. I set today's coffee dose in grams. The recipe's ratio calculates total water and scales
-   each percentage-based pour.
+   each percentage-based pour. I can tweak any other setting, such as grind size, for today.
 5. I follow the recipe and save the brew. After tasting it, I enter its 1-to-5 rating and
    optionally add a note.
 6. Later, I can look at ratings for brews made with a particular bean, method and recipe.
@@ -74,28 +88,6 @@ These percentages illustrate the calculation, not a recommended recipe.
 The screens should be clean and easy to navigate, especially when first opened in the morning.
 Design for a phone first, with readable recipe steps and large, easy-to-tap controls; the same
 information should remain usable on desktop.
-
-## Still to decide
-
-- [ ] **What a brew remembers.** If I tweak the grind or dose on the day, is that saved with
-  the brew? Recommended: yes. Each brew keeps a copy of the settings actually used (dose,
-  grind, water), pre-filled from the recipe and editable before saving. Otherwise editing a
-  recipe later rewrites history, and the tracker can't show which grind worked best.
-- [ ] **Sign-in method.** Recommended: email and password. It works the same on every
-  device; "email me a link" often opens in the wrong browser on a phone.
-- [ ] **No internet in the kitchen.** Recommended: the site says plainly that it couldn't
-  save and keeps what I typed so I can retry. Full offline use is parked.
-- [ ] **Unrated brews.** I save the brew, then rate it after tasting. Recommended: a brew
-  without a rating shows as "rate me" on the home screen and is left out of averages.
-- [ ] **How recommendations rank.** Recommended: for the chosen method, recipes are ranked
-  by average rating across all beans, showing how many brews each average is based on, so
-  one lucky 5 doesn't look like a sure thing.
-- [ ] **"Repeat my latest brew".** Recommended: the latest brew for the chosen method, with
-  the same recipe, dose and grind.
-- [ ] **Finished bags.** Recommended: I can mark a bag finished; it leaves the bean picker
-  but its brews stay in the history.
-- [ ] **Methods without pours.** The Cafelat Robot (and maybe the OXO) has no pours.
-  Recommended: pours are optional; a recipe can be just dose, ratio and steps.
 
 ## Not in the first version
 
