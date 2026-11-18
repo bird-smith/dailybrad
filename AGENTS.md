@@ -69,7 +69,7 @@ brainstorm -> outline -> plan stubs -> for one stub at a time: write -> improve 
 |-------|--------|-----|
 | Pages | React + Vite + TypeScript, Tailwind CSS | The site itself |
 | Hosting | GitHub Pages | Publishes `main` automatically (`.github/workflows/deploy.yml`) |
-| Saving data | The browser's own storage (localStorage) | Until a database is added |
+| Saving data | Supabase (online database) | Locked per `.claude/skills/database-change/SKILL.md` |
 | Tests | Vitest | Checks rules and sums |
 
 Target cost: $0. **Always ask first** before anything that costs money or anything
@@ -84,6 +84,7 @@ Known limits:
 - Browser storage lives on one device, in one browser, and clearing browser data erases
   it. **Any screen that saves data in browser storage needs Export and Import backup
   buttons in the same plan.** Tell him plainly that a phone and a computer won't share data.
+- Free Supabase projects pause after a week unused; restore from the dashboard.
 
 ## Commands
 
