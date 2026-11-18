@@ -1,6 +1,6 @@
 # Coffee Tracker
 
-**Status:** approved, 2026-11-18.
+**Status:** split into plans, 2026-11-18.
 
 ## The pitch
 
@@ -137,4 +137,4 @@ well-made café menu card or a Japanese brewing guide than to a fitness app.
 
 ## Plans
 
-Not split yet. Will be Section 1 of `docs/TOC.md`.
+See Section 1 of `docs/TOC.md`.
