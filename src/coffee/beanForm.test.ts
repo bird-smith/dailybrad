@@ -41,6 +41,7 @@ describe('checkBean', () => {
         bag_grams: null,
         cost_cents: null,
         region: null,
+        process: null,
         varietal: null,
         notes: null,
       },
@@ -87,6 +88,7 @@ describe('beanToForm', () => {
       bag_grams: 340,
       cost_cents: 2250,
       region: 'Nyeri',
+      process: 'Washed',
       varietal: 'SL28',
       notes: 'Blackcurrant',
     }

@@ -8,6 +8,7 @@ export type BeanForm = {
   bagGrams: string
   cost: string
   region: string
+  process: string
   varietal: string
   notes: string
 }
@@ -19,6 +20,7 @@ export const EMPTY_BEAN_FORM: BeanForm = {
   bagGrams: '',
   cost: '',
   region: '',
+  process: '',
   varietal: '',
   notes: '',
 }
@@ -64,8 +66,9 @@ export function checkBean(form: BeanForm, today: string): BeanCheck {
   if (!name) errors.name = 'Give the bean a name.'
   const roaster = text('roaster', 100, 'the roaster')
   const region = text('region', 100, 'the region')
+  const process = text('process', 100, 'the process')
   const varietal = text('varietal', 100, 'the varietal')
-  const notes = text('notes', 2000, 'the notes')
+  const notes = text('notes', 2000, 'the tasting notes')
 
   const roast_date = form.roastDate.trim() || null
   if (roast_date && !/^\d{4}-\d{2}-\d{2}$/.test(roast_date)) errors.roastDate = 'Pick a date.'
@@ -96,7 +99,7 @@ export function checkBean(form: BeanForm, today: string): BeanCheck {
   if (Object.keys(errors).length > 0) return { ok: false, errors }
   return {
     ok: true,
-    values: { name: name!, roaster, roast_date, bag_grams, cost_cents, region, varietal, notes },
+    values: { name: name!, roaster, roast_date, bag_grams, cost_cents, region, process, varietal, notes },
   }
 }
 
@@ -109,6 +112,7 @@ export function beanToForm(bean: Bean): BeanForm {
     bagGrams: bean.bag_grams === null ? '' : String(bean.bag_grams),
     cost: bean.cost_cents === null ? '' : formatMoney(bean.cost_cents),
     region: bean.region ?? '',
+    process: bean.process ?? '',
     varietal: bean.varietal ?? '',
     notes: bean.notes ?? '',
   }

@@ -15,6 +15,7 @@ export type Bean = {
   bag_grams: number | null
   cost_cents: number | null
   region: string | null
+  process: string | null
   varietal: string | null
   notes: string | null
   finished: boolean

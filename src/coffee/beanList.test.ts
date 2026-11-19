@@ -11,6 +11,7 @@ function bean(name: string, changes: Partial<Bean> = {}): Bean {
     bag_grams: null,
     cost_cents: null,
     region: null,
+    process: null,
     varietal: null,
     notes: null,
     finished: false,

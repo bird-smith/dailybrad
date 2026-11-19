@@ -36,7 +36,9 @@ const FIELDS: { key: keyof BeanForm; label: string; type?: string; inputMode?: '
   { key: 'bagGrams', label: 'Bag size (grams)', inputMode: 'numeric' },
   { key: 'cost', label: 'Cost ($)', inputMode: 'decimal' },
   { key: 'region', label: 'Region' },
+  { key: 'process', label: 'Process' },
   { key: 'varietal', label: 'Varietal' },
+  { key: 'notes', label: 'Tasting notes' },
 ]
 
 function BeanEditor({ bean }: { bean: Bean | null }) {
@@ -126,17 +128,6 @@ function BeanEditor({ bean }: { bean: Bean | null }) {
             <ErrorLine message={errors[field.key] ?? ''} className="mt-1 text-base" />
           </label>
         ))}
-        <label className="block text-sm text-muted">
-          Notes
-          <textarea
-            value={form.notes}
-            onChange={(e) => set('notes')(e.target.value)}
-            rows={4}
-            className={`${INPUT} h-auto py-2`}
-          />
-          <ErrorLine message={errors.notes ?? ''} className="mt-1 text-base" />
-        </label>
-
         <ErrorLine message={saveError} />
         <button type="submit" disabled={busy !== ''} className={BIG_BUTTON}>
           {busy === 'save' ? 'Saving…' : 'Save'}
