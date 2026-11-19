@@ -22,5 +22,29 @@ export type Bean = {
   created_at: string
 }
 
+/** One item in a recipe's ordered list. percent: share of the total water. at: seconds. */
+export type RecipeStep =
+  | { kind: 'pour'; percent: number; at: number | null }
+  | { kind: 'action'; text: string; at: number | null }
+
+// Written by hand to match supabase/migrations/003-recipes.sql.
+export type Recipe = {
+  id: string
+  method_id: string
+  name: string
+  ratio: number
+  dose_grams: number
+  grinder: string | null
+  grind_size: string | null
+  temperature: number | null
+  bloom_seconds: number | null
+  total_seconds: number | null
+  steps: RecipeStep[]
+  notes: string | null
+  created_at: string
+}
+
+export type RecipeValues = Omit<Recipe, 'id' | 'created_at'>
+
 /** The parts of a bean he types in. */
 export type BeanValues = Omit<Bean, 'id' | 'finished' | 'is_active' | 'created_at'>

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { dataMessage } from './dataMessage'
+import { dataMessage, isInUseError } from './dataMessage'
+
+describe('isInUseError', () => {
+  it('spots the database refusing to remove something in use', () => {
+    expect(isInUseError({ status: 409, code: '23503' })).toBe(true)
+    expect(isInUseError({ status: 409, code: '23505' })).toBe(false)
+    expect(isInUseError({ message: 'Failed to fetch' })).toBe(false)
+    expect(isInUseError(null)).toBe(false)
+  })
+})
 
 const CANT_REACH_SAVE =
   "Couldn't save: can't reach the internet. What you typed is still here. Try again when you're connected."

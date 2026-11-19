@@ -41,6 +41,11 @@ export function dataMessage(error: unknown, action: DataAction, online: boolean,
   return `Couldn't ${verb}. Try again in a minute.`
 }
 
+/** The database refusing to remove something other rows still point at. */
+export function isInUseError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as ErrorLike).code === '23503'
+}
+
 /** Whether the browser thinks it's online. Some browsers can't tell: assume yes. */
 export function isOnline(): boolean {
   return typeof navigator === 'undefined' || navigator.onLine !== false
