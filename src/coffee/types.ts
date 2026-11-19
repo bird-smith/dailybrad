@@ -90,3 +90,11 @@ export type RecipeRating = {
   bean_rated_brews: number
   bean_rating_total: number
 }
+
+// Written by hand to match the bean_supply function in
+// supabase/migrations/008-bean-supply.sql. One row per bag in use with brews; tenths of a gram.
+export type BeanSupply = {
+  bean_id: string
+  used_tenths: number
+  last_dose_tenths: number
+}
