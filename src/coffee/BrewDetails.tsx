@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import ErrorLine from '../components/ErrorLine'
 import { INPUT, LoadFailed, QUIET_LINK, SMALL_BUTTON } from '../components/ui'
 import { dataMessage, isOnline } from '../lib/dataMessage'
@@ -10,8 +11,11 @@ import { deleteBrew, getBrew, updateBrew } from './brewsData'
 import { formatClock } from './clock'
 import type { HistoryData } from './HistoryScreen'
 import { checkDose, checkRatio, TEMP_UNIT } from './recipeForm'
+import { brewsLikeThis, filterToParams } from './historyFilter'
+import RatingDots from './RatingDots'
+import RatingForm from './RatingForm'
 import { formatOneDecimal } from './recipeList'
-import type { Brew } from './types'
+import type { Brew, RatingValues } from './types'
 
 type Props = {
   brewId: string
@@ -83,6 +87,8 @@ function Details({ brew, data, onChanged, onDeleted }: Props & { brew: Brew }) {
       <h2 className="font-serif text-3xl">{recipeName}</h2>
       <p className="mt-1 text-muted tabular-nums">{brewDayLabel(brew.brewed_at, new Date())}</p>
 
+      <RatingSection brew={brew} onChanged={onChanged} />
+
       <dl className="mt-6 space-y-1">
         <div>
           <dt className="text-sm text-muted">Bean</dt>
@@ -131,6 +137,9 @@ function Details({ brew, data, onChanged, onDeleted }: Props & { brew: Brew }) {
             <button type="button" onClick={() => setFixing(true)} className={QUIET_LINK}>
               Fix this brew
             </button>
+            <Link to={`/coffee/history?${filterToParams(brewsLikeThis(brew))}`} className={QUIET_LINK}>
+              Brews like this
+            </Link>
             {!confirmDelete ? (
               <button type="button" onClick={() => setConfirmDelete(true)} className={QUIET_LINK}>
                 Delete brew
@@ -153,6 +162,43 @@ function Details({ brew, data, onChanged, onDeleted }: Props & { brew: Brew }) {
         </>
       )}
     </article>
+  )
+}
+
+function RatingSection({ brew, onChanged }: { brew: Brew; onChanged: (brew: Brew) => void }) {
+  const [changing, setChanging] = useState(false)
+  const saved = (values: RatingValues) => {
+    setChanging(false)
+    onChanged({ ...brew, ...values })
+  }
+
+  return (
+    <section className="mt-6">
+      <h3 className="text-sm text-muted">Rating</h3>
+      {brew.rating === null ? (
+        <>
+          <p className="mt-1">Not rated yet.</p>
+          <div className="mt-1">
+            <RatingForm brewId={brew.id} onSaved={saved} />
+          </div>
+        </>
+      ) : changing ? (
+        <div className="mt-1">
+          <RatingForm brewId={brew.id} saved={brew} onSaved={saved} onCancel={() => setChanging(false)} />
+        </div>
+      ) : (
+        <>
+          <p className="mt-2">
+            <RatingDots rating={brew.rating} />
+          </p>
+          {brew.taste_words.length > 0 && <p className="mt-1 text-muted">{brew.taste_words.join(' · ')}</p>}
+          {brew.rating_note && <p className="mt-1 whitespace-pre-line">{brew.rating_note}</p>}
+          <button type="button" onClick={() => setChanging(true)} className={QUIET_LINK}>
+            Change rating
+          </button>
+        </>
+      )}
+    </section>
   )
 }
 
