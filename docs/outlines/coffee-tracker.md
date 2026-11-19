@@ -25,8 +25,9 @@ beautiful object to use, not a spreadsheet.
   Pours are optional, so a recipe for a method without pours (such as the Cafelat Robot) can
   be just dose, ratio and steps.
 - **Dose and water:** Before brewing, I can choose how many grams of coffee to use. The
-  recipe's ratio calculates total water, and pours saved as percentages of total water scale
-  to match. Pours are shown as running totals to watch for on the scale, with the separate
+  recipe's ratio calculates total water. Each pour is "pour to" a fixed weight (usual) or a
+  percentage; only percentage pours and the last pour (which fills to the total) move with
+  the dose. Pours are shown as running totals to watch for on the scale, with the separate
   amounts small beside them.
 - **Guided brew timer:** I press start and each step (bloom, each pour, valve open or close)
   appears in turn, one at a time, with a countdown. The screen stays awake while it runs,
@@ -85,17 +86,18 @@ beautiful object to use, not a spreadsheet.
 
 - A ratio of 1:15 means 15 grams of water for each gram of coffee. Total water is the coffee
   dose multiplied by the ratio's water number.
-- Each pour in the recipe is saved as a percentage of total water. Its amount is that
-  percentage multiplied by the calculated total water. Changing the dose scales total water
-  and the pours together.
+- Each pour is "pour to" a fixed weight in grams (usual), or a percentage: of the dose for
+  the first pour (the bloom), of the total water after it. The last pour always fills to the
+  total water. Changing the dose changes the water, the last pour and any percentage pours;
+  fixed weights stay put. (Changed 2026-11-19 at Brad's request: before, every pour was a
+  share of the water, so a new dose moved them all.)
 - Each completed brew gets one 1-to-5 rating. The rating is for that brew as a whole; there
   are no separate bean, method or recipe ratings.
 
-For example, if I choose 18 g of coffee and a 1:15 recipe, the total water is 270 g. If the
-saved pours are 10%, 40% and 50% of the water, they become 27 g, 108 g and 135 g. If I change
-the dose to 20 g, the total becomes 300 g and those pours become 30 g, 120 g and 150 g.
-These percentages illustrate the calculation, not a recommended recipe. While brewing, the
-18 g pours show as running totals: pour to 27 g, then to 135 g, then to 270 g.
+For example, with 16 g of coffee and a 1:15 recipe, the total water is 240 g. A recipe of
+bloom to 45 g, at 0:45 pour to 100 g, then the rest, shows: pour to 45 g, then to 100 g,
+then to 240 g (amounts 45, 55, 140). At 18 g the water is 270 g: still 45 and 100, then
+270. A bloom of 250% of the dose instead would be 40 g at 16 g and 45 g at 18 g.
 
 - Cups left in a bag: bag size minus all doses logged from it, divided by today's dose,
   rounded down. Cost per cup: bag cost divided by bag size, times the dose. For a 340 g bag
