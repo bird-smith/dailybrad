@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import ActiveBeanCard from './ActiveBeanCard'
+import RateMeCard from './RateMeCard'
 
 const LINKS = [
   { to: '/coffee/beans', label: 'Beans' },
@@ -41,6 +42,7 @@ export default function CoffeeHome() {
             Brew saved.
           </p>
         )}
+        <RateMeCard />
         <nav className="flex items-center gap-2 text-muted">
           {LINKS.map((link, i) => (
             <span key={link.to} className="flex items-center gap-2">
