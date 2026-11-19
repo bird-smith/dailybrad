@@ -19,7 +19,7 @@ import {
   type RecipeCheck,
   type RecipeForm,
 } from './recipeForm'
-import { formatNumber } from './recipeList'
+import { formatOneDecimal } from './recipeList'
 import { poursToPercents } from './recipeMath'
 import { addRecipe, deleteRecipe, loadMethodsAndRecipes, updateRecipe } from './recipesData'
 import type { Method, Recipe } from './types'
@@ -175,7 +175,7 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
             </span>
           </Field>
         </div>
-        <p className="min-h-6 text-muted tabular-nums">{water !== null && `Water ${formatNumber(water)} g`}</p>
+        <p className="min-h-6 text-muted tabular-nums">{water !== null && `Water ${formatOneDecimal(water)} g`}</p>
 
         <Field label="Grinder" error={errors.grinder}>
           <input
@@ -228,7 +228,7 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
                     )}
                     {row.kind === 'pour' && i === lastPour && (
                       <span className="tabular-nums">
-                        {water === null ? 'Pour the rest' : `Pour to ${formatNumber(water)} g (the rest)`}
+                        {water === null ? 'Pour the rest' : `Pour to ${formatOneDecimal(water)} g (the rest)`}
                       </span>
                     )}
                     {row.kind === 'action' && (

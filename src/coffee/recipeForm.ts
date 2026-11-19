@@ -1,5 +1,5 @@
 import { formatClock, parseClock } from './clock'
-import { formatNumber } from './recipeList'
+import { formatOneDecimal } from './recipeList'
 import { pourTargets, poursToPercents, totalWater } from './recipeMath'
 import type { Recipe, RecipeStep, RecipeValues } from './types'
 
@@ -59,12 +59,62 @@ export function parseOneDecimal(text: string): number | null {
   return /^\d+(\.\d)?$/.test(trimmed) ? Number(trimmed) : null
 }
 
+// Single-box checks, shared by the recipe page and the brew screen so both accept the same.
+export type BoxCheck<T> = { ok: true; value: T } | { ok: false; message: string }
+
+export function checkRatio(text: string): BoxCheck<number> {
+  const ratio = parseOneDecimal(text)
+  if (!text.trim()) return { ok: false, message: 'Type the ratio, like 15.' }
+  if (ratio === null || ratio < 1 || ratio > 30) {
+    return { ok: false, message: 'Ratio should be between 1 and 30, like 15 or 15.5.' }
+  }
+  return { ok: true, value: ratio }
+}
+
+export function checkDose(text: string): BoxCheck<number> {
+  const dose = parseOneDecimal(text)
+  if (!text.trim()) return { ok: false, message: 'Type the dose in grams, like 18.' }
+  if (dose === null || dose < 1 || dose > 100) {
+    return { ok: false, message: 'Dose should be 1 to 100 g, like 18 or 18.5.' }
+  }
+  return { ok: true, value: dose }
+}
+
+/** Blank is "not given". */
+export function checkTemperature(text: string): BoxCheck<number | null> {
+  const trimmed = text.trim()
+  if (!trimmed) return { ok: true, value: null }
+  const temperature = /^\d+$/.test(trimmed) ? Number(trimmed) : null
+  if (temperature === null || temperature < TEMP_MIN || temperature > TEMP_MAX) {
+    return { ok: false, message: `Temperature should be a whole number from ${TEMP_MIN} to ${TEMP_MAX} ${TEMP_UNIT}.` }
+  }
+  return { ok: true, value: temperature }
+}
+
+/** Trimmed text; blank is "not given". */
+export function checkShortText(text: string, max: number): BoxCheck<string | null> {
+  const trimmed = text.trim()
+  if (length(trimmed) > max) return { ok: false, message: `Keep it to ${max} characters.` }
+  return { ok: true, value: trimmed || null }
+}
+
+/** A time box; blank is "not given". */
+export function checkTime(text: string, max: number): BoxCheck<number | null> {
+  const parsed = parseClock(text)
+  if (!parsed.ok) return { ok: false, message: parsed.message }
+  if (parsed.seconds !== null && (parsed.seconds < 1 || parsed.seconds > max)) {
+    return { ok: false, message: `Keep it between 0:01 and ${formatClock(max)}.` }
+  }
+  return { ok: true, value: parsed.seconds }
+}
+
+export const checkBloom = (text: string) => checkTime(text, 600)
+
 /** Water for the typed dose and ratio, or null until both make sense. */
 export function formWater(form: Pick<RecipeForm, 'dose' | 'ratio'>): number | null {
-  const dose = parseOneDecimal(form.dose)
-  const ratio = parseOneDecimal(form.ratio)
-  if (dose === null || ratio === null || dose < 1 || dose > 100 || ratio < 1 || ratio > 30) return null
-  return totalWater(dose, ratio)
+  const dose = checkDose(form.dose)
+  const ratio = checkRatio(form.ratio)
+  return dose.ok && ratio.ok ? totalWater(dose.value, ratio.value) : null
 }
 
 /** Index of the last pour row, or -1. */
@@ -84,45 +134,19 @@ export function checkRecipe(form: RecipeForm, otherNamesInMethod: string[], meth
     if (clash) errors.name = `You already have a recipe called ${clash} for ${methodName}.`
   }
 
-  const ratio = parseOneDecimal(form.ratio)
-  if (!form.ratio.trim()) errors.ratio = 'Type the ratio, like 15.'
-  else if (ratio === null || ratio < 1 || ratio > 30) errors.ratio = 'Ratio should be between 1 and 30, like 15 or 15.5.'
-
-  const dose = parseOneDecimal(form.dose)
-  if (!form.dose.trim()) errors.dose = 'Type the dose in grams, like 18.'
-  else if (dose === null || dose < 1 || dose > 100) errors.dose = 'Dose should be between 1 and 100 grams, like 18 or 18.5.'
-
-  const text = (value: string, max: number, key: FieldKey, label: string) => {
-    const trimmed = value.trim()
-    if (length(trimmed) > max) errors[key] = `Keep ${label} to ${max} characters.`
-    return trimmed || null
+  const take = <T,>(check: BoxCheck<T>, key: FieldKey): T | null => {
+    if (check.ok) return check.value
+    errors[key] = check.message
+    return null
   }
-  const grinder = text(form.grinder, 60, 'grinder', 'the grinder')
-  const grind_size = text(form.grindSize, 30, 'grindSize', 'the grind size')
-  const notes = text(form.notes, 2000, 'notes', 'the notes')
-
-  let temperature: number | null = null
-  const tempText = form.temperature.trim()
-  if (tempText) {
-    temperature = /^\d+$/.test(tempText) ? Number(tempText) : null
-    if (temperature === null || temperature < TEMP_MIN || temperature > TEMP_MAX) {
-      errors.temperature = `Temperature should be a whole number from ${TEMP_MIN} to ${TEMP_MAX} ${TEMP_UNIT}.`
-    }
-  }
-
-  const time = (value: string, key: FieldKey, max: number) => {
-    const parsed = parseClock(value)
-    if (!parsed.ok) {
-      errors[key] = parsed.message
-      return null
-    }
-    if (parsed.seconds !== null && (parsed.seconds < 1 || parsed.seconds > max)) {
-      errors[key] = `Keep it between 0:01 and ${formatClock(max)}.`
-    }
-    return parsed.seconds
-  }
-  const bloom_seconds = time(form.bloom, 'bloom', 600)
-  const total_seconds = time(form.total, 'total', 3600)
+  const ratio = take(checkRatio(form.ratio), 'ratio')
+  const dose = take(checkDose(form.dose), 'dose')
+  const grinder = take(checkShortText(form.grinder, 60), 'grinder')
+  const grind_size = take(checkShortText(form.grindSize, 30), 'grindSize')
+  const notes = take(checkShortText(form.notes, 2000), 'notes')
+  const temperature = take(checkTemperature(form.temperature), 'temperature')
+  const bloom_seconds = take(checkBloom(form.bloom), 'bloom')
+  const total_seconds = take(checkTime(form.total, 3600), 'total')
 
   // Pours and steps.
   if (form.rows.length > MAX_ROWS) errors.rows = `Keep it to ${MAX_ROWS} pours and steps.`
@@ -152,7 +176,7 @@ export function checkRecipe(form: RecipeForm, otherNamesInMethod: string[], meth
     if (weight === null) rowErrors[i] ??= 'Type how much to pour to, in grams, like 135.'
     else if (weight <= previous) rowErrors[i] ??= 'Each pour should be more than the one before.'
     else if (water !== null && weight >= water) {
-      rowErrors[i] ??= `Each pour should be less than the total water (${formatNumber(water)} g).`
+      rowErrors[i] ??= `Each pour should be less than the total water (${formatOneDecimal(water)} g).`
     }
     pourTo.push(weight ?? previous)
   })
@@ -202,8 +226,8 @@ export function recipeToForm(recipe: Recipe): RecipeForm {
   return {
     methodId: recipe.method_id,
     name: recipe.name,
-    ratio: formatNumber(recipe.ratio),
-    dose: formatNumber(recipe.dose_grams),
+    ratio: formatOneDecimal(recipe.ratio),
+    dose: formatOneDecimal(recipe.dose_grams),
     grinder: recipe.grinder ?? '',
     grindSize: recipe.grind_size ?? '',
     temperature: recipe.temperature === null ? '' : String(recipe.temperature),

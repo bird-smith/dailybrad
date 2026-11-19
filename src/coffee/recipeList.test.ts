@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupRecipes, recipeSummary } from './recipeList'
+import { formatOneDecimal, groupRecipes, recipeSummary } from './recipeList'
 import type { Method, Recipe, RecipeStep } from './types'
 
 const method = (id: string): Method => ({ id, name: id, created_at: '' })
@@ -48,5 +48,13 @@ describe('recipeSummary', () => {
       ),
     ).toBe('1:16.5 · 15.5 g · 1 pour')
     expect(recipeSummary(recipe('c', { ratio: 2 }))).toBe('1:2 · 18 g')
+  })
+})
+
+describe('formatOneDecimal', () => {
+  it('drops a trailing .0', () => {
+    expect(formatOneDecimal(15)).toBe('15')
+    expect(formatOneDecimal(15.5)).toBe('15.5')
+    expect(formatOneDecimal(18.0)).toBe('18')
   })
 })

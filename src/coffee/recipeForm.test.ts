@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkRecipe, EMPTY_RECIPE_FORM, recipeToForm, TEMP_MAX, TEMP_MIN, type FormRow, type RecipeForm } from './recipeForm'
+import { checkDose, checkRatio, checkRecipe, checkShortText, checkTemperature, EMPTY_RECIPE_FORM, recipeToForm, TEMP_MAX, TEMP_MIN, type FormRow, type RecipeForm } from './recipeForm'
 import type { Recipe } from './types'
 
 const BASE: RecipeForm = { ...EMPTY_RECIPE_FORM, methodId: 'm1', name: 'Kasuya 4:6', ratio: '15', dose: '18' }
@@ -108,5 +108,30 @@ describe('recipeToForm', () => {
     const back = recipeToForm(recipe)
     expect(back.rows[0]).toMatchObject({ kind: 'pour', pourTo: '27' })
     expect(checkRecipe(back, [])).toEqual({ ok: true, values })
+  })
+})
+
+describe('single-box checks', () => {
+  it('checkDose', () => {
+    expect(checkDose('18')).toEqual({ ok: true, value: 18 })
+    expect(checkDose('18.5')).toEqual({ ok: true, value: 18.5 })
+    for (const text of ['0', '101', '18.55', 'abc', '']) expect(checkDose(text).ok).toBe(false)
+  })
+  it('checkRatio', () => {
+    expect(checkRatio('15')).toEqual({ ok: true, value: 15 })
+    expect(checkRatio('15.5')).toEqual({ ok: true, value: 15.5 })
+    for (const text of ['0', '31']) expect(checkRatio(text).ok).toBe(false)
+  })
+  it('checkTemperature', () => {
+    expect(checkTemperature(' ')).toEqual({ ok: true, value: null })
+    expect(checkTemperature(String(TEMP_MIN)).ok).toBe(true)
+    expect(checkTemperature(String(TEMP_MAX)).ok).toBe(true)
+    expect(checkTemperature(String(TEMP_MIN - 1)).ok).toBe(false)
+    expect(checkTemperature(String(TEMP_MAX + 1)).ok).toBe(false)
+  })
+  it('checkShortText', () => {
+    expect(checkShortText('  ', 30)).toEqual({ ok: true, value: null })
+    expect(checkShortText(' 18 clicks ', 30)).toEqual({ ok: true, value: '18 clicks' })
+    expect(checkShortText('a'.repeat(31), 30).ok).toBe(false)
   })
 })
