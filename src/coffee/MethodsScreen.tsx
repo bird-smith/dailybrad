@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import ErrorLine from '../components/ErrorLine'
 import { INPUT, LoadFailed, Screen, SMALL_BUTTON } from '../components/ui'
-import { dataMessage, isOnline } from '../lib/dataMessage'
+import { dataMessage, isInUseError, isOnline } from '../lib/dataMessage'
 import { useLoad } from '../lib/useLoad'
 import { checkMethodName } from './methodName'
 import { addMethod, isDuplicate, listMethods, removeMethod, renameMethod } from './methodsData'
@@ -150,7 +150,14 @@ function MethodRow({ method, names, onRenamed, onRemoved }: RowProps) {
     setBusy(true)
     const reply = await removeMethod(method.id)
     setBusy(false)
-    if (!reply.ok) return setError(dataMessage(reply.error, 'delete', isOnline()))
+    if (!reply.ok) {
+      setMode('show')
+      return setError(
+        isInUseError(reply.error)
+          ? `${method.name} has recipes. Delete them or move them to another method first.`
+          : dataMessage(reply.error, 'delete', isOnline()),
+      )
+    }
     onRemoved()
   }
 
