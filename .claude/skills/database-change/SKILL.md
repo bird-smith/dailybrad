@@ -23,11 +23,19 @@ database's own access rules are the only real wall.** Checks in the site are a c
 
    No policy means nobody can do it, which is the safe default. Nothing for signed-out
    visitors, unless he says so in plain words.
-3. **He runs the file:** give him click-by-click steps to paste it into the Supabase
-   dashboard's **SQL Editor** and click **Run**. Say what it should report.
+3. **Run it with `npm run migrate`:** it runs files not run yet, each all-or-nothing, and
+   records them in `private.migrations_run`. `npm run migrate -- --list` shows what's
+   waiting. It refuses files that drop tables or columns, delete rows or truncate: ask the
+   owner first, then rerun with `--allow-destructive`. It needs `SUPABASE_DB_URL` (a
+   **secret** key) in `.env`. If that's missing on this computer, fall back to
+   click-by-click steps to paste the file into the Supabase **SQL Editor**, click **Run**,
+   then record it by running `npm run migrate -- --record-only` once a key is available.
+   Plans that say "hand batch A: run the migration in SQL Editor" mean this step.
 4. **Prove the wall:** before calling it done, try reading the table while signed out, with
    the public key, and show that nothing comes back.
 5. **Keys:** the site uses only the project URL and the **publishable** key, in `.env` and in
-   the GitHub Actions variables that the publish step reads. The secret key never appears.
+   the GitHub Actions variables that the publish step reads. `SUPABASE_DB_URL` is used only
+   by `npm run migrate` on this computer: never give it a `VITE_` name, never put it in
+   GitHub, never read or print it.
 6. **Limits:** free projects pause after a week of no use: tell him how to restore one. Keep
    an Export button on the site as his own backup.

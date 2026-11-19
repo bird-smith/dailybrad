@@ -91,6 +91,8 @@ Known limits:
 - `npm run dev`: the site on this computer at http://localhost:5173 (Ctrl+C stops it)
 - `npm test`: the Vitest checks
 - `npm run check`: type-check, tests and build. Must pass before calling anything done.
+- `npm run migrate`: runs new database files in `supabase/migrations/` (see the
+  database-change skill). Needs the secret `SUPABASE_DB_URL` in `.env`.
 
 ## Conventions
 
