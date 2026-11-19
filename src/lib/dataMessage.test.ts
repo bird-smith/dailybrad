@@ -48,3 +48,29 @@ describe('dataMessage', () => {
     expect(dataMessage({ status: 400, code: 'X' }, 'delete', true)).toBe("Couldn't delete. Try again in a minute.")
   })
 })
+
+describe('dataMessage for backups', () => {
+  it('words export failures', () => {
+    expect(dataMessage({ status: 0 }, 'export', true)).toBe(
+      "Couldn't export: can't reach the internet. Try again when you're connected.",
+    )
+    expect(dataMessage({ status: 401 }, 'export', true)).toBe(
+      "Couldn't export: you've been signed out. Sign in again in a new tab, then try again.",
+    )
+    expect(dataMessage({ status: 400, code: 'X' }, 'export', true)).toBe("Couldn't export. Try again in a minute.")
+  })
+  it('words import failures', () => {
+    expect(dataMessage({ status: 0 }, 'import', true)).toBe("Couldn't finish: can't reach the internet.")
+    expect(dataMessage({ status: 401 }, 'import', true)).toBe(
+      "Couldn't finish: you've been signed out. Sign in again in a new tab.",
+    )
+    expect(dataMessage({ status: 400, code: 'X' }, 'import', true)).toBe("Couldn't finish. Try again in a minute.")
+  })
+  it('says the database refused part of the backup', () => {
+    const refused =
+      'The database refused part of this backup, so it stopped there. Choose the same file again; if this keeps happening, the file may have been changed by hand.'
+    for (const code of ['23502', '23503', '23505', '23514']) {
+      expect(dataMessage({ status: 409, code }, 'import', true)).toBe(refused)
+    }
+  })
+})
