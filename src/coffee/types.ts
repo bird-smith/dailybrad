@@ -80,3 +80,13 @@ export type BrewValues = Omit<Brew, 'id' | 'brewed_at' | keyof RatingValues>
 
 /** The parts of a bean he types in. */
 export type BeanValues = Omit<Bean, 'id' | 'finished' | 'is_active' | 'created_at'>
+
+// Written by hand to match the recipe_ratings function in
+// supabase/migrations/007-recipe-ratings.sql. One row per recipe with rated brews.
+export type RecipeRating = {
+  recipe_id: string
+  rated_brews: number
+  rating_total: number
+  bean_rated_brews: number
+  bean_rating_total: number
+}
