@@ -55,14 +55,20 @@ export default function CoffeeHome() {
         </nav>
       </div>
 
-      <button
-        type="button"
-        // This device only: signing out here leaves his other devices signed in.
-        onClick={() => supabase?.auth.signOut({ scope: 'local' })}
-        className="h-12 self-center px-4 text-sm text-muted hover:text-ink"
-      >
-        Sign out
-      </button>
+      <div className="flex items-center gap-1 self-center text-sm text-muted">
+        <Link to="/coffee/backup" className="flex h-12 items-center px-3 hover:text-ink">
+          Backup
+        </Link>
+        <span aria-hidden="true">·</span>
+        <button
+          type="button"
+          // This device only: signing out here leaves his other devices signed in.
+          onClick={() => supabase?.auth.signOut({ scope: 'local' })}
+          className="h-12 px-3 hover:text-ink"
+        >
+          Sign out
+        </button>
+      </div>
     </main>
   )
 }
