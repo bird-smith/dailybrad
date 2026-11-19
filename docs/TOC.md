@@ -23,7 +23,7 @@ Outline: `docs/outlines/coffee-tracker.md` (split into plans). Plans: `docs/plan
 - [x] [x] [x] 1.5-brew-log: save brews, history, fix and delete a brew
 - [x] [x] [x] 1.6-brew-timer: step-by-step timer that fills in brew time
 - [x] [x] [x] 1.7-ratings: 1-to-5 ratings, taste words, "rate me" card
-- [x] [x] [ ] 1.8-recommendations: repeat latest brew, recipes ranked by rating
+- [x] [x] [x] 1.8-recommendations: repeat latest brew, recipes ranked by rating
 - [x] [x] [ ] 1.9-backups: export and import a backup file
 - [x] [x] [ ] 1.10-bean-supply: cups left and cost per cup on the Beans screen
 
