@@ -1,7 +1,7 @@
 import { db, run } from '../lib/dataResult'
 import type { BrewFix } from './brewLog'
 import type { HistoryFilter } from './historyFilter'
-import type { Brew, BrewValues, RatingValues } from './types'
+import type { Brew, BrewValues, RatingValues, RecipeRating } from './types'
 
 export const HISTORY_PAGE = 50
 
@@ -29,6 +29,23 @@ export const getLatestBrew = () =>
       .limit(1)
       .maybeSingle(),
   )
+
+/** The newest brew with this method that still links to a recipe, or null. */
+export const getLatestBrewForMethod = (methodId: string) =>
+  run<Brew | null>(
+    db()
+      .from('brews')
+      .select('*')
+      .eq('method_id', methodId)
+      .not('recipe_id', 'is', null)
+      .order('brewed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  )
+
+/** Rating sums per recipe for one method; with no bag, the bag counts are 0. */
+export const getRecipeRatings = (methodId: string, beanId: string | null) =>
+  run<RecipeRating[]>(db().rpc('recipe_ratings', { p_method_id: methodId, p_bean_id: beanId }))
 
 export const addBrew = (values: BrewValues) => run<Brew>(db().from('brews').insert(values).select('*').single())
 
