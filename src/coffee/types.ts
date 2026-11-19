@@ -64,9 +64,19 @@ export type Brew = {
   bloom_seconds: number | null
   brew_seconds: number | null
   steps: RecipeStep[]
+  // Added by supabase/migrations/006-brew-ratings.sql. null rating: not rated yet.
+  rating: number | null
+  taste_words: TasteWord[]
+  rating_note: string | null
 }
 
-export type BrewValues = Omit<Brew, 'id' | 'brewed_at'>
+export const TASTE_WORDS = ['sour', 'bitter', 'weak', 'strong', 'balanced'] as const
+export type TasteWord = (typeof TASTE_WORDS)[number]
+
+export type RatingValues = Pick<Brew, 'rating' | 'taste_words' | 'rating_note'>
+
+/** What a new brew saves; the rating comes later. */
+export type BrewValues = Omit<Brew, 'id' | 'brewed_at' | keyof RatingValues>
 
 /** The parts of a bean he types in. */
 export type BeanValues = Omit<Bean, 'id' | 'finished' | 'is_active' | 'created_at'>

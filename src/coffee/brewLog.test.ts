@@ -46,6 +46,9 @@ function brew(changes: Partial<Brew> = {}): Brew {
     bloom_seconds: null,
     brew_seconds: null,
     steps: STEPS,
+    rating: null,
+    taste_words: [],
+    rating_note: null,
     ...changes,
   }
 }
