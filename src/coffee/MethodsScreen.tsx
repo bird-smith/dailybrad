@@ -154,7 +154,7 @@ function MethodRow({ method, names, onRenamed, onRemoved }: RowProps) {
       setMode('show')
       return setError(
         isInUseError(reply.error)
-          ? `${method.name} has recipes. Delete them or move them to another method first.`
+          ? `${method.name} is used by recipes or brews, so it can't be removed.`
           : dataMessage(reply.error, 'delete', isOnline()),
       )
     }

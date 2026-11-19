@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import ErrorLine from '../components/ErrorLine'
-import { INPUT, LoadFailed, QUIET_LINK, Screen } from '../components/ui'
+import { BIG_BUTTON, INPUT, LoadFailed, QUIET_LINK, Screen } from '../components/ui'
+import { dataMessage, isInUseError, isOnline } from '../lib/dataMessage'
 import type { DataResult } from '../lib/dataResult'
 import { useLoad } from '../lib/useLoad'
 import { getBean } from './beansData'
 import { brewRows, changedSettings, draftFromRecipe, settingsSummary, stepDose, type BrewDraft } from './brewSetup'
-import { formatClock } from './clock'
+import { brewToSave } from './brewLog'
+import { addBrew } from './brewsData'
+import { formatClock, parseClock } from './clock'
 import { listMethods } from './methodsData'
 import {
   checkBloom,
@@ -183,9 +186,76 @@ function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; method
       {recipe.total_seconds !== null && (
         <p className="mt-6 text-muted tabular-nums">Target {formatClock(recipe.total_seconds)}</p>
       )}
-      <p className="mt-10 text-sm text-muted">Saving brews and the timer come next.</p>
+      <SaveBrew
+        draft={draft}
+        recipeName={recipe.name}
+        boxesOk={dose.ok && Object.values(checks).every((c) => c.ok)}
+      />
     </>
   )
+}
+
+function SaveBrew({ draft, recipeName, boxesOk }: { draft: BrewDraft; recipeName: string; boxesOk: boolean }) {
+  const navigate = useNavigate()
+  const [brewTime, setBrewTime] = useState('')
+  const [error, setError] = useState('')
+  const [timeError, setTimeError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    if (busy) return
+    setError('')
+    const values = brewToSave(draft, recipeName, brewTime)
+    setTimeError(values.ok ? '' : values.message)
+    if (!boxesOk || !values.ok) {
+      setError('Fix the boxes marked above first.')
+      return
+    }
+    setBusy(true)
+    const reply = await addBrew(values.values)
+    setBusy(false)
+    if (!reply.ok) {
+      setError(
+        isInUseError(reply.error)
+          ? "This bean or recipe isn't here any more. Go back and choose again."
+          : dataMessage(reply.error, 'save', isOnline()),
+      )
+      return
+    }
+    // Replace this screen, so Back from home doesn't return to a brew already saved.
+    navigate('/coffee', { replace: true, state: { brewSaved: true } })
+  }
+
+  return (
+    <section className="mt-10 space-y-4">
+      <label className="block text-sm text-muted">
+        Brew time
+        <span className="mt-1 flex items-center gap-2">
+          <input
+            inputMode="numeric"
+            placeholder="310"
+            value={brewTime}
+            onChange={(e) => setBrewTime(e.target.value)}
+            className={`${INPUT} mt-0 tabular-nums`}
+          />
+          <span className="w-12 text-muted tabular-nums">{tidy(brewTime)}</span>
+        </span>
+        <ErrorLine message={timeError} className="mt-1 text-base" />
+      </label>
+      <ErrorLine message={error} />
+      <button type="button" disabled={busy} onClick={save} className={BIG_BUTTON}>
+        {busy ? 'Saving…' : 'Save brew'}
+      </button>
+    </section>
+  )
+}
+
+/** "310" shows "3:10" beside the box. */
+function tidy(text: string) {
+  const parsed = parseClock(text)
+  return parsed.ok && parsed.seconds !== null && text.trim() !== formatClock(parsed.seconds)
+    ? formatClock(parsed.seconds)
+    : ''
 }
 
 type TodayBoxProps = {

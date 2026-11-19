@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import ActiveBeanCard from './ActiveBeanCard'
 
@@ -12,6 +13,13 @@ const TODAY_FORMAT: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long
 
 export default function CoffeeHome() {
   const today = new Date().toLocaleDateString('en-US', TODAY_FORMAT)
+  const location = useLocation()
+  const navigate = useNavigate()
+  // Shown once after saving a brew; the note is cleared at once so a reload doesn't repeat it.
+  const [brewSaved] = useState(Boolean((location.state as { brewSaved?: boolean } | null)?.brewSaved))
+  useEffect(() => {
+    if (brewSaved) navigate('.', { replace: true, state: null })
+  }, [brewSaved, navigate])
 
   return (
     <main className="screen-in mx-auto flex min-h-dvh max-w-md flex-col px-4 pt-16 pb-6">
@@ -28,6 +36,11 @@ export default function CoffeeHome() {
         >
           Brew
         </Link>
+        {brewSaved && (
+          <p role="status" className="-mt-4 text-muted">
+            Brew saved.
+          </p>
+        )}
         <nav className="flex items-center gap-2 text-muted">
           {LINKS.map((link, i) => (
             <span key={link.to} className="flex items-center gap-2">

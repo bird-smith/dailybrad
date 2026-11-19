@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import ErrorLine from '../components/ErrorLine'
 import { BIG_BUTTON, INPUT, LoadFailed, QUIET_LINK, Screen, SMALL_BUTTON } from '../components/ui'
-import { dataMessage, isOnline } from '../lib/dataMessage'
+import { dataMessage, isInUseError, isOnline } from '../lib/dataMessage'
 import type { DataResult } from '../lib/dataResult'
 import { useLoad } from '../lib/useLoad'
 import { beanToForm, checkBean, EMPTY_BEAN_FORM, type BeanForm } from './beanForm'
@@ -97,7 +97,11 @@ function BeanEditor({ bean }: { bean: Bean | null }) {
     setActionError('')
     const reply = await deleteBean(bean.id)
     if (!reply.ok) {
-      setActionError(dataMessage(reply.error, 'delete', isOnline()))
+      setActionError(
+        isInUseError(reply.error)
+          ? "This bean has brews, so it can't be deleted. Mark it finished instead."
+          : dataMessage(reply.error, 'delete', isOnline()),
+      )
       setBusy('')
       return
     }

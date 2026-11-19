@@ -5,10 +5,10 @@ import BeansScreen from './coffee/BeansScreen'
 import BrewChooseScreen from './coffee/BrewChooseScreen'
 import BrewScreen from './coffee/BrewScreen'
 import CoffeeHome from './coffee/CoffeeHome'
+import HistoryScreen from './coffee/HistoryScreen'
 import MethodsScreen from './coffee/MethodsScreen'
 import RecipeScreen from './coffee/RecipeScreen'
 import RecipesScreen from './coffee/RecipesScreen'
-import NotBuiltYet from './components/NotBuiltYet'
 
 // Where the bare site address goes. Change this one line when there is more than coffee.
 const HOME = '/coffee'
@@ -27,7 +27,7 @@ export default function App() {
           <Route path="/coffee/methods" element={<MethodsScreen />} />
           <Route path="/coffee/recipes" element={<RecipesScreen />} />
           <Route path="/coffee/recipes/:id" element={<RecipeScreen />} />
-          <Route path="/coffee/history" element={<NotBuiltYet />} />
+          <Route path="/coffee/history/:brewId?" element={<HistoryScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>

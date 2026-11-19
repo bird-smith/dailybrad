@@ -29,9 +29,11 @@ export function BackButton({ fallback }: { fallback: string }) {
   )
 }
 
-export function Screen({ title, back, children }: { title: string; back: string; children: React.ReactNode }) {
+// wide: on desktop the page grows to two columns' width (History).
+export function Screen(props: { title: string; back: string; wide?: boolean; children: React.ReactNode }) {
+  const { title, back, wide, children } = props
   return (
-    <main className="screen-in mx-auto flex min-h-dvh max-w-md flex-col px-4 pt-6 pb-10">
+    <main className={`screen-in mx-auto flex min-h-dvh max-w-md flex-col px-4 pt-6 pb-10 ${wide ? 'lg:max-w-4xl' : ''}`}>
       <BackButton fallback={back} />
       <h1 className="mt-2 font-serif text-4xl">{title}</h1>
       {children}

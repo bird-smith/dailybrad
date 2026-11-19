@@ -333,7 +333,7 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
             </button>
           ) : (
             <div>
-              <p>Delete this recipe? This can't be undone.</p>
+              <p>Delete this recipe? Brews made with it stay in your history. This can't be undone.</p>
               <div className="mt-2 flex gap-2">
                 <button type="button" disabled={busy !== ''} onClick={handleDelete} className={SMALL_BUTTON}>
                   {busy === 'delete' ? 'Deleting…' : 'Delete'}
