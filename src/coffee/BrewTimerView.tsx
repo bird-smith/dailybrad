@@ -22,7 +22,7 @@ function nextLabel(step: TimerStep) {
 }
 
 // The full-screen timer: one step at a time, read at arm's length.
-export default function BrewTimer({ view, elapsed, recipeName, canKeepAwake, onNext, onDone, onCancel }: Props) {
+export default function BrewTimerView({ view, elapsed, recipeName, canKeepAwake, onNext, onDone, onCancel }: Props) {
   const { current, next, countdown, sinceStep, toTarget } = view
   const last = next === null
 

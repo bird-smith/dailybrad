@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import ErrorLine from '../components/ErrorLine'
 import { BIG_BUTTON, INPUT, LoadFailed, QUIET_LINK, Screen } from '../components/ui'
 import { dataMessage, isInUseError, isOnline } from '../lib/dataMessage'
@@ -9,6 +9,8 @@ import { getBean } from './beansData'
 import { brewRows, changedSettings, draftFromRecipe, settingsSummary, stepDose, type BrewDraft } from './brewSetup'
 import { brewToSave } from './brewLog'
 import { addBrew } from './brewsData'
+import BrewTimerView from './BrewTimerView'
+import { useBrewTimer } from './useBrewTimer'
 import { formatClock, parseClock } from './clock'
 import { listMethods } from './methodsData'
 import {
@@ -105,9 +107,81 @@ function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; method
   const age = roastAgeLabel(daysSinceRoast(bean.roast_date, new Date()))
   const step = (direction: 1 | -1) => setDoseText(formatOneDecimal(stepDose(draft.dose, direction)))
   const setBox = (key: keyof Boxes) => (value: string) => setBoxes((b) => ({ ...b, [key]: value }))
+  const boxesOk = dose.ok && Object.values(checks).every((c) => c.ok)
+
+  // The timer is a view of this screen: `?timer=on` in the address, so Back just closes it.
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const showing = searchParams.get('timer') === 'on'
+  const timer = useBrewTimer(showing)
+  const [brewTime, setBrewTime] = useState('')
+  const [timerError, setTimerError] = useState('')
+  const [scrollToSave, setScrollToSave] = useState(false)
+  const closing = useRef(false)
+  const saveRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showing) closing.current = false
+    // `?timer=on` with no timer (a refresh, or a pasted address): the plain brew screen.
+    else if (!timer.running && !closing.current) setSearchParams({}, { replace: true })
+  }, [showing, timer.running, setSearchParams])
+
+  useEffect(() => {
+    if (showing || !scrollToSave) return
+    saveRef.current?.scrollIntoView({ block: 'center' })
+    setScrollToSave(false)
+  }, [showing, scrollToSave])
+
+  function startTimer() {
+    if (!boxesOk || !scaled) {
+      setTimerError('Fix the boxes marked above first.')
+      return
+    }
+    setTimerError('')
+    timer.start(scaled.rows, draft.bloomSeconds, draft.totalSeconds)
+    setSearchParams({ timer: 'on' })
+  }
+
+  function closeTimer() {
+    closing.current = true
+    navigate(-1)
+  }
+
+  function timerDone() {
+    setBrewTime(formatClock(timer.done()))
+    setScrollToSave(true)
+    closeTimer()
+  }
+
+  function timerCancel() {
+    timer.cancel()
+    closeTimer()
+  }
+
+  if (showing && timer.view) {
+    return (
+      <BrewTimerView
+        view={timer.view}
+        elapsed={timer.elapsed}
+        recipeName={recipe.name}
+        canKeepAwake={timer.canKeepAwake}
+        onNext={timer.next}
+        onDone={timerDone}
+        onCancel={timerCancel}
+      />
+    )
+  }
 
   return (
     <>
+      {timer.running && (
+        <div className="mt-3 flex items-center justify-between gap-3 border-y border-line py-1 text-muted">
+          <span className="tabular-nums">Timer running · {formatClock(timer.elapsed)}</span>
+          <button type="button" onClick={() => setSearchParams({ timer: 'on' })} className={QUIET_LINK}>
+            Back to timer
+          </button>
+        </div>
+      )}
       <p className="mt-1 text-muted">{[methodName, bean.name, age].filter(Boolean).join(' · ')}</p>
 
       <div className="mt-10 flex items-center justify-between gap-2">
@@ -186,18 +260,33 @@ function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; method
       {recipe.total_seconds !== null && (
         <p className="mt-6 text-muted tabular-nums">Target {formatClock(recipe.total_seconds)}</p>
       )}
-      <SaveBrew
-        draft={draft}
-        recipeName={recipe.name}
-        boxesOk={dose.ok && Object.values(checks).every((c) => c.ok)}
-      />
+      <section className="mt-10">
+        <button
+          type="button"
+          onClick={startTimer}
+          className="press flex h-14 w-full items-center justify-center rounded-xl border border-line text-lg text-ink"
+        >
+          Start timer
+        </button>
+        <ErrorLine message={timerError} className="mt-2" />
+      </section>
+      <div ref={saveRef}>
+        <SaveBrew draft={draft} recipeName={recipe.name} boxesOk={boxesOk} brewTime={brewTime} setBrewTime={setBrewTime} />
+      </div>
     </>
   )
 }
 
-function SaveBrew({ draft, recipeName, boxesOk }: { draft: BrewDraft; recipeName: string; boxesOk: boolean }) {
+type SaveBrewProps = {
+  draft: BrewDraft
+  recipeName: string
+  boxesOk: boolean
+  brewTime: string
+  setBrewTime: (text: string) => void
+}
+
+function SaveBrew({ draft, recipeName, boxesOk, brewTime, setBrewTime }: SaveBrewProps) {
   const navigate = useNavigate()
-  const [brewTime, setBrewTime] = useState('')
   const [error, setError] = useState('')
   const [timeError, setTimeError] = useState('')
   const [busy, setBusy] = useState(false)
