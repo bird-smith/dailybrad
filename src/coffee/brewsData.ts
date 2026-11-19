@@ -17,14 +17,14 @@ export function listBrews(offset: number, filter: HistoryFilter = {}) {
 /** null when no brew has that id. */
 export const getBrew = (id: string) => run<Brew | null>(db().from('brews').select('*').eq('id', id).maybeSingle())
 
-export type LatestBrew = Pick<Brew, 'id' | 'brewed_at' | 'recipe_name'> & RatingValues
+export type LatestBrew = Pick<Brew, 'id' | 'brewed_at' | 'recipe_name' | 'dose_grams'> & RatingValues
 
 /** The newest brew only, or null with no brews yet. */
 export const getLatestBrew = () =>
   run<LatestBrew | null>(
     db()
       .from('brews')
-      .select('id, brewed_at, recipe_name, rating, taste_words, rating_note')
+      .select('id, brewed_at, recipe_name, dose_grams, rating, taste_words, rating_note')
       .order('brewed_at', { ascending: false })
       .limit(1)
       .maybeSingle(),

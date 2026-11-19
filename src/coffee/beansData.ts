@@ -1,5 +1,5 @@
 import { db, run } from '../lib/dataResult'
-import type { Bean, BeanValues } from './types'
+import type { Bean, BeanSupply, BeanValues } from './types'
 
 export const listBeans = () => run<Bean[]>(db().from('beans').select('*'))
 
@@ -19,6 +19,9 @@ export const deleteBean = (id: string) => run<null>(db().from('beans').delete().
 
 /** Makes this bag the active one; the database switches off the old one in the same step. */
 export const setActiveBean = (id: string) => run<null>(db().rpc('set_active_bean', { bean_id: id }))
+
+/** Doses logged per bag in use (tenths of a gram), for "cups left". */
+export const getBeanSupply = () => run<BeanSupply[]>(db().rpc('bean_supply'))
 
 /** Finishing a bag also stops it being the active one. */
 export const setFinished = (id: string, finished: boolean) =>
