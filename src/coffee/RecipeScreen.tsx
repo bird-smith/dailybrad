@@ -20,7 +20,7 @@ import {
   type RecipeForm,
 } from './recipeForm'
 import { formatOneDecimal } from './recipeList'
-import { poursToPercents } from './recipeMath'
+import { percentOf, pourToGrams } from './recipeMath'
 import { addRecipe, deleteRecipe, loadMethodsAndRecipes, updateRecipe } from './recipesData'
 import type { Method, Recipe } from './types'
 
@@ -68,7 +68,7 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
   const errors = problems.errors
 
   const water = formWater(form)
-  const shares = liveShares(form.rows, water)
+  const live = livePours(form, water)
   const lastPour = lastPourIndex(form.rows)
   const methodName = methods.find((m) => m.id === form.methodId)?.name ?? 'this method'
   const grinders = [...new Set(recipes.map((r) => r.grinder).filter((g): g is string => Boolean(g)))]
@@ -116,7 +116,7 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
   const addRow = (kind: FormRow['kind']) =>
     setRows((rows) => [
       ...rows,
-      kind === 'pour' ? { key: newRowKey(), kind, pourTo: '', at: '' } : { key: newRowKey(), kind, text: '', at: '' },
+      kind === 'pour' ? { key: newRowKey(), kind, pourTo: '', unit: 'g', at: '' } : { key: newRowKey(), kind, text: '', at: '' },
     ])
   const updateRow = (i: number, change: Partial<FormRow>) =>
     setRows((rows) => rows.map((row, j) => (j === i ? ({ ...row, ...change } as FormRow) : row)))
@@ -218,12 +218,22 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
                         <span>Pour to</span>
                         <input
                           inputMode="decimal"
-                          aria-label="Pour to, grams"
+                          aria-label={row.unit === 'g' ? 'Pour to, grams' : `Pour to, percent of the ${live[i]?.of}`}
                           value={row.pourTo}
                           onChange={(e) => updateRow(i, { pourTo: e.target.value })}
                           className={SMALL_INPUT}
                         />
-                        <span>g</span>
+                        <button
+                          type="button"
+                          aria-label={row.unit === 'g' ? 'Grams. Tap for percent' : 'Percent. Tap for grams'}
+                          onClick={() => updateRow(i, { unit: row.unit === 'g' ? '%' : 'g' })}
+                          className="press h-12 w-12 shrink-0 rounded-xl border border-line text-ink"
+                        >
+                          {row.unit}
+                        </button>
+                        {row.unit === '%' && (
+                          <span className="text-sm text-muted">of {live[i]?.of}</span>
+                        )}
                       </>
                     )}
                     {row.kind === 'pour' && i === lastPour && (
@@ -240,8 +250,8 @@ function RecipeEditor({ recipe, methods, recipes }: { recipe: Recipe | null; met
                         className={`${INPUT} mt-0 flex-1`}
                       />
                     )}
-                    {row.kind === 'pour' && shares[i] !== undefined && (
-                      <span className="ml-auto text-sm text-muted tabular-nums">{shares[i]}%</span>
+                    {row.kind === 'pour' && row.unit === '%' && i !== lastPour && live[i]?.grams !== undefined && (
+                      <span className="ml-auto text-sm text-muted tabular-nums">{live[i].grams} g</span>
                     )}
                   </div>
                   {row.kind === 'action' && !row.text && (
@@ -385,13 +395,18 @@ function TidyTime({ value }: { value: string }) {
   return <span className="w-12 text-muted tabular-nums">{show && parsed.ok ? formatClock(parsed.seconds!) : ''}</span>
 }
 
-/** Each pour's whole-number share of the water as typed, by row; empty until they make sense. */
-function liveShares(rows: FormRow[], water: number | null): Record<number, number> {
-  const pourRows = rows.flatMap((row, i) => (row.kind === 'pour' ? [{ row, i }] : []))
-  if (water === null || pourRows.length === 0) return {}
-  const weights = pourRows.slice(0, -1).map(({ row }) => parseOneDecimal(row.kind === 'pour' ? row.pourTo : ''))
-  const valid = weights.every((w, j) => w !== null && w > (j ? weights[j - 1]! : 0) && w < water)
-  if (!valid) return {}
-  const percents = poursToPercents(weights as number[], water)
-  return Object.fromEntries(pourRows.map(({ i }, j) => [i, Math.round(percents[j])]))
+/** By row, for each pour: what its % is of, and its grams at this dose once typed. */
+function livePours(form: RecipeForm, water: number | null): Record<number, { of: 'dose' | 'water'; grams?: number }> {
+  const dose = parseOneDecimal(form.dose)
+  const pourRows = form.rows.flatMap((row, i) => (row.kind === 'pour' ? [{ row, i }] : []))
+  return Object.fromEntries(
+    pourRows.map(({ row, i }, j) => {
+      const typed = parseOneDecimal(row.kind === 'pour' ? row.pourTo : '')
+      const grams =
+        row.kind === 'pour' && typed !== null && dose !== null && water !== null
+          ? pourToGrams(typed, row.unit, j, dose, water)
+          : undefined
+      return [i, { of: percentOf(j), grams }]
+    }),
+  )
 }

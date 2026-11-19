@@ -1,7 +1,7 @@
 import { formatClock, parseClock } from './clock'
 import { formatOneDecimal } from './recipeList'
-import { pourTargets, poursToPercents, totalWater } from './recipeMath'
-import type { Recipe, RecipeStep, RecipeValues } from './types'
+import { percentOf, pourTargets, pourToGrams, totalWater } from './recipeMath'
+import type { PourUnit, Recipe, RecipeStep, RecipeValues } from './types'
 
 // Temperature unit. For Fahrenheit: '°F', 158 to 212.
 export const TEMP_UNIT = '°C'
@@ -12,9 +12,9 @@ export const MAX_ROWS = 20
 const STEP_TEXT_MAX = 60
 
 // One row of pours and steps as typed. key keeps React rows steady when moved.
-// The last pour's pourTo is ignored: it is always "the rest".
+// The last pour's pourTo and unit are ignored: it always fills to the water.
 export type FormRow =
-  | { key: string; kind: 'pour'; pourTo: string; at: string }
+  | { key: string; kind: 'pour'; pourTo: string; unit: PourUnit; at: string }
   | { key: string; kind: 'action'; text: string; at: string }
 
 export type RecipeForm = {
@@ -153,6 +153,7 @@ export function checkRecipe(form: RecipeForm, otherNamesInMethod: string[], meth
   const water = ratio !== null && dose !== null && !errors.ratio && !errors.dose ? totalWater(dose, ratio) : null
   const lastPour = lastPourIndex(form.rows)
   const pourTo: number[] = []
+  const saved: Record<number, RecipeStep> = {}
   const ats: (number | null)[] = []
   let latestAt = -1
   form.rows.forEach((row, i) => {
@@ -171,26 +172,38 @@ export function checkRecipe(form: RecipeForm, otherNamesInMethod: string[], meth
       return
     }
     if (i === lastPour) return
-    const weight = parseOneDecimal(row.pourTo)
-    const previous = pourTo.length ? pourTo[pourTo.length - 1] : 0
-    if (weight === null) rowErrors[i] ??= 'Type how much to pour to, in grams, like 135.'
-    else if (weight <= previous) rowErrors[i] ??= 'Each pour should be more than the one before.'
-    else if (water !== null && weight >= water) {
+    const pourNumber = pourTo.length
+    const typed = parseOneDecimal(row.pourTo)
+    const previous = pourNumber ? pourTo[pourNumber - 1] : 0
+    const grams = typed === null || water === null ? typed : pourToGrams(typed, row.unit, pourNumber, dose!, water)
+    if (typed === null || typed <= 0) {
+      rowErrors[i] ??=
+        row.unit === 'g'
+          ? 'Type how much to pour to, in grams, like 135.'
+          : `Type a percentage of the ${percentOf(pourNumber)}, like ${pourNumber === 0 ? 250 : 50}.`
+    } else if (row.unit === '%' && percentOf(pourNumber) === 'water' && typed >= 100) {
+      rowErrors[i] ??= 'Keep it under 100% of the water.'
+    } else if (row.unit === '%' && typed > 1000) {
+      rowErrors[i] ??= 'Keep it to 1000% of the dose or less.'
+    } else if (grams !== null && grams <= previous) {
+      rowErrors[i] ??= 'Each pour should be more than the one before.'
+    } else if (water !== null && grams !== null && grams >= water) {
       rowErrors[i] ??= `Each pour should be less than the total water (${formatOneDecimal(water)} g).`
     }
-    pourTo.push(weight ?? previous)
+    pourTo.push(grams ?? previous)
+    saved[i] = { kind: 'pour', to: typed ?? 0, unit: row.unit, at: null }
   })
 
   if (Object.keys(errors).length > 0 || rowErrors.some(Boolean) || water === null) {
     return { ok: false, errors, rowErrors }
   }
 
-  const percents = lastPour === -1 ? [] : poursToPercents(pourTo, water)
-  let pourNumber = 0
   const steps: RecipeStep[] = form.rows.map((row, i) =>
-    row.kind === 'pour'
-      ? { kind: 'pour', percent: percents[pourNumber++], at: ats[i] }
-      : { kind: 'action', text: row.text.trim(), at: ats[i] },
+    row.kind === 'action'
+      ? { kind: 'action', text: row.text.trim(), at: ats[i] }
+      : i === lastPour
+        ? { kind: 'pour', to: null, unit: 'g', at: ats[i] }
+        : { ...saved[i], at: ats[i] },
   )
 
   return {
@@ -214,13 +227,12 @@ export function checkRecipe(form: RecipeForm, otherNamesInMethod: string[], meth
 let nextKey = 0
 export const newRowKey = () => `row-${nextKey++}`
 
-/** Fills the form from a saved recipe: shares become "pour to" weights at its own dose. */
+/** Fills the form from a saved recipe. Old shares of the water become "pour to" weights
+ *  at its own dose. */
 export function recipeToForm(recipe: Recipe): RecipeForm {
   const water = totalWater(recipe.dose_grams, recipe.ratio)
-  const targets = pourTargets(
-    recipe.steps.flatMap((step) => (step.kind === 'pour' ? [step.percent] : [])),
-    water,
-  )
+  const pours = recipe.steps.flatMap((step) => (step.kind === 'pour' ? [step] : []))
+  const targets = pourTargets(pours, recipe.dose_grams, water)
   let pourNumber = 0
   const at = (seconds: number | null) => (seconds === null ? '' : formatClock(seconds))
   return {
@@ -236,8 +248,14 @@ export function recipeToForm(recipe: Recipe): RecipeForm {
     notes: recipe.notes ?? '',
     rows: recipe.steps.map((step) =>
       step.kind === 'pour'
-        ? { key: newRowKey(), kind: 'pour', pourTo: String(targets[pourNumber++].pourTo), at: at(step.at) }
+        ? { key: newRowKey(), kind: 'pour', ...pourBox(step, targets[pourNumber++].pourTo), at: at(step.at) }
         : { key: newRowKey(), kind: 'action', text: step.text, at: at(step.at) },
     ),
   }
+}
+
+/** What a saved pour shows in its box: its own number and unit, or grams for old shares. */
+function pourBox(step: Extract<RecipeStep, { kind: 'pour' }>, grams: number): { pourTo: string; unit: PourUnit } {
+  if ('percent' in step || step.to === null) return { pourTo: String(grams), unit: 'g' }
+  return { pourTo: formatOneDecimal(step.to), unit: step.unit }
 }

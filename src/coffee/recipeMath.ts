@@ -1,5 +1,9 @@
-// The scaling rule: pours are shares of the total water, and water is dose times ratio.
-// Used by recipes (1.3) and the brew setup (1.4). Don't write a second one.
+import type { PourUnit, RecipeStep } from './types'
+
+// The pour rule. Water is dose times ratio. A pour is "pour to" a fixed weight, or a
+// percentage: of the dose on the first pour (the bloom), of the water after it. The last
+// pour always fills to the water. Used by recipes (1.3) and the brew setup (1.4).
+// Don't write a second one.
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 
@@ -7,29 +11,39 @@ export function totalWater(dose: number, ratio: number): number {
   return round2(dose * ratio)
 }
 
+/** What the % on a pour is of: the dose on the first pour (the bloom), the water after. */
+export const percentOf = (pourNumber: number): 'dose' | 'water' => (pourNumber === 0 ? 'dose' : 'water')
+
+/** One pour's "pour to" weight in whole grams. */
+export function pourToGrams(to: number, unit: PourUnit, pourNumber: number, dose: number, water: number): number {
+  if (unit === 'g') return Math.round(to)
+  return Math.round(round2(((percentOf(pourNumber) === 'dose' ? dose : water) * to) / 100))
+}
+
+type PourStep = Extract<RecipeStep, { kind: 'pour' }>
+
 /** For each pour: the running total to pour to and the single amount, in whole grams.
- *  The last running total is exactly the rounded water, so the amounts always add up. */
-export function pourTargets(percents: number[], water: number): { pourTo: number; amount: number }[] {
+ *  The last pour is exactly the rounded water. Recipes saved before 2026-11-19 hold
+ *  `percent` (a share of the water) instead, and still read correctly. */
+export function pourTargets(pours: PourStep[], dose: number, water: number): { pourTo: number; amount: number }[] {
   let share = 0
   let previous = 0
-  return percents.map((percent, i) => {
-    share += percent
-    const pourTo = i === percents.length - 1 ? Math.round(water) : Math.round(round2((water * share) / 100))
+  return pours.map((pour, i) => {
+    let pourTo: number
+    if (i === pours.length - 1) pourTo = Math.round(water)
+    else if ('percent' in pour) {
+      share += pour.percent
+      pourTo = Math.round(round2((water * share) / 100))
+    } else pourTo = pourToGrams(pour.to ?? 0, pour.unit, i, dose, water)
     const amount = pourTo - previous
     previous = pourTo
     return { pourTo, amount }
   })
 }
 
-/** The reverse, for saving: "pour to" weights of every pour but the last (which is the
- *  rest) become shares, rounded to two decimals, totalling exactly 100. */
-export function poursToPercents(pourTo: number[], water: number): number[] {
-  let previous = 0
-  const shares = pourTo.map((to) => {
-    const share = round2(((to - previous) / water) * 100)
-    previous = to
-    return share
-  })
-  const used = shares.reduce((sum, share) => sum + share, 0)
-  return [...shares, round2(100 - used)]
+/** Plain sentence when the pours don't fit the water (for example fixed weights and a
+ *  smaller dose), or null. */
+export function poursProblem(targets: { pourTo: number; amount: number }[], water: number): string | null {
+  const bad = targets.some((t, i) => t.amount <= 0 || (i < targets.length - 1 && t.pourTo >= Math.round(water)))
+  return bad ? `The pours don't fit in ${Math.round(water)} g of water. Raise the dose or ratio, or change the recipe.` : null
 }

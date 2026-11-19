@@ -249,6 +249,7 @@ function Brew({ recipe, bean, methodName, fromBrewId, fromBrew }: BrewProps) {
       <p className="mt-6 text-center font-serif text-3xl tabular-nums">
         Water {scaled ? scaled.water : '–'} <span className="text-muted">g</span>
       </p>
+      <ErrorLine message={scaled?.problem ?? ''} className="mt-2 text-center" />
 
       {draft.steps.length > 0 && (
         <ol className="mt-8 divide-y divide-line border-y border-line">

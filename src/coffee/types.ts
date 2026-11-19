@@ -23,8 +23,16 @@ export type Bean = {
   created_at: string
 }
 
-/** One item in a recipe's ordered list. percent: share of the total water. at: seconds. */
+/** g: grams. %: of the dose on the first pour (the bloom), of the water after it. */
+export type PourUnit = 'g' | '%'
+
+/**
+ * One item in a recipe's ordered list. at: seconds from the start.
+ * A pour says what to pour to; `to` is null on the last pour, which fills to the water.
+ * Brews and backups from before 2026-11-19 hold `percent` instead: a share of the water.
+ */
 export type RecipeStep =
+  | { kind: 'pour'; to: number | null; unit: PourUnit; at: number | null }
   | { kind: 'pour'; percent: number; at: number | null }
   | { kind: 'action'; text: string; at: number | null }
 

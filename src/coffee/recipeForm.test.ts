@@ -4,7 +4,13 @@ import type { Recipe } from './types'
 
 const BASE: RecipeForm = { ...EMPTY_RECIPE_FORM, methodId: 'm1', name: 'Kasuya 4:6', ratio: '15', dose: '18' }
 const form = (changes: Partial<RecipeForm>) => ({ ...BASE, ...changes })
-const pourRow = (pourTo: string, at = ''): FormRow => ({ key: Math.random().toString(), kind: 'pour', pourTo, at })
+const pourRow = (pourTo: string, at = '', unit: 'g' | '%' = 'g'): FormRow => ({
+  key: Math.random().toString(),
+  kind: 'pour',
+  pourTo,
+  unit,
+  at,
+})
 const stepRow = (text: string, at = ''): FormRow => ({ key: Math.random().toString(), kind: 'action', text, at })
 
 function errorsOf(f: RecipeForm, names: string[] = []) {
@@ -57,13 +63,26 @@ describe('checkRecipe', () => {
       expect(errorsOf(form({ temperature })).errors.temperature).toBeTruthy()
     }
   })
-  it('saves pours as shares', () => {
-    const result = checkRecipe(form({ rows: [pourRow('27', '0'), pourRow('135', '45'), pourRow('')] }), [])
+  it('saves pours as typed: fixed grams or %, the last filling to the water', () => {
+    const result = checkRecipe(form({ rows: [pourRow('45', '0'), pourRow('100', '45'), pourRow('')] }), [])
     expect(result.ok && result.values.steps).toEqual([
-      { kind: 'pour', percent: 10, at: 0 },
-      { kind: 'pour', percent: 40, at: 45 },
-      { kind: 'pour', percent: 50, at: null },
+      { kind: 'pour', to: 45, unit: 'g', at: 0 },
+      { kind: 'pour', to: 100, unit: 'g', at: 45 },
+      { kind: 'pour', to: null, unit: 'g', at: null },
     ])
+    const percent = checkRecipe(form({ rows: [pourRow('250', '', '%'), pourRow('60', '', '%'), pourRow('')] }), [])
+    expect(percent.ok && percent.values.steps.slice(0, 2)).toEqual([
+      { kind: 'pour', to: 250, unit: '%', at: null },
+      { kind: 'pour', to: 60, unit: '%', at: null },
+    ])
+  })
+  it('checks % pours: bloom % of dose, later % of water', () => {
+    // 18 g dose, 270 g water: 250% of dose is 45 g; 10% of water is 27 g, below the bloom.
+    expect(errorsOf(form({ rows: [pourRow('250', '', '%'), pourRow('10', '', '%'), pourRow('')] })).rowErrors[1]).toMatch(
+      /more than the one before/,
+    )
+    expect(errorsOf(form({ rows: [pourRow('45'), pourRow('100', '', '%'), pourRow('')] })).rowErrors[1]).toMatch(/under 100%/)
+    expect(errorsOf(form({ rows: [pourRow('0', '', '%'), pourRow('')] })).rowErrors[0]).toMatch(/percentage of the dose/)
   })
   it('refuses pours that go down or reach the water', () => {
     expect(errorsOf(form({ rows: [pourRow('135'), pourRow('135'), pourRow('')] })).rowErrors[1]).toBeTruthy()
@@ -84,7 +103,37 @@ describe('checkRecipe', () => {
   })
 })
 
+const EMPTY_RECIPE: Recipe = {
+  id: 'r1',
+  created_at: '',
+  method_id: 'm1',
+  name: 'Kasuya',
+  ratio: 15,
+  dose_grams: 18,
+  grinder: null,
+  grind_size: null,
+  temperature: null,
+  bloom_seconds: null,
+  total_seconds: null,
+  steps: [],
+  notes: null,
+}
+
 describe('recipeToForm', () => {
+  it('turns old shares into grams at the recipe dose', () => {
+    const recipe: Recipe = {
+      ...EMPTY_RECIPE,
+      steps: [
+        { kind: 'pour', percent: 10, at: 0 },
+        { kind: 'pour', percent: 40, at: 45 },
+        { kind: 'pour', percent: 50, at: 90 },
+      ],
+    }
+    const back = recipeToForm(recipe)
+    expect(back.rows.slice(0, 2)).toMatchObject([{ pourTo: '27', unit: 'g' }, { pourTo: '135', unit: 'g' }])
+    const again = checkRecipe(back, [])
+    expect(again.ok && again.values.steps[1]).toEqual({ kind: 'pour', to: 135, unit: 'g', at: 45 })
+  })
   it('round-trips through checkRecipe', () => {
     const values = {
       method_id: 'm1',
@@ -97,16 +146,16 @@ describe('recipeToForm', () => {
       bloom_seconds: 45,
       total_seconds: 210,
       steps: [
-        { kind: 'pour' as const, percent: 10, at: 0 },
+        { kind: 'pour' as const, to: 250, unit: '%' as const, at: 0 },
         { kind: 'action' as const, text: 'Close valve', at: null },
-        { kind: 'pour' as const, percent: 40, at: 45 },
-        { kind: 'pour' as const, percent: 50, at: 90 },
+        { kind: 'pour' as const, to: 100, unit: 'g' as const, at: 45 },
+        { kind: 'pour' as const, to: null, unit: 'g' as const, at: 90 },
       ],
       notes: 'Sweet',
     }
     const recipe: Recipe = { id: 'r1', created_at: '', ...values }
     const back = recipeToForm(recipe)
-    expect(back.rows[0]).toMatchObject({ kind: 'pour', pourTo: '27' })
+    expect(back.rows[0]).toMatchObject({ kind: 'pour', pourTo: '250', unit: '%' })
     expect(checkRecipe(back, [])).toEqual({ ok: true, values })
   })
 })

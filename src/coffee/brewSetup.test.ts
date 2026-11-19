@@ -76,6 +76,7 @@ describe('brewRows', () => {
         { kind: 'pour', pourTo: 135, amount: 108, at: null },
         { kind: 'pour', pourTo: 270, amount: 135, at: null },
       ],
+      problem: null,
     })
     const at20 = brewRows({ ...draftFromRecipe(recipe(), 'b1'), dose: 20 })
     expect(at20.water).toBe(300)
@@ -100,7 +101,23 @@ describe('brewRows', () => {
   it('handles no pours', () => {
     const steps: RecipeStep[] = [{ kind: 'action', text: 'Press', at: null }]
     const result = brewRows(draftFromRecipe(recipe({ ratio: 2, steps }), 'b1'))
-    expect(result).toEqual({ water: 36, rows: [{ kind: 'action', text: 'Press', at: null }] })
+    expect(result).toEqual({ water: 36, rows: [{ kind: 'action', text: 'Press', at: null }], problem: null })
+  })
+  it('keeps fixed pours fixed at another dose, and says so when they no longer fit', () => {
+    const steps: RecipeStep[] = [
+      { kind: 'pour', to: 45, unit: 'g', at: null },
+      { kind: 'pour', to: 100, unit: 'g', at: 45 },
+      { kind: 'pour', to: null, unit: 'g', at: null },
+    ]
+    const at16 = brewRows({ ...draftFromRecipe(recipe({ steps }), 'b1'), dose: 16 })
+    expect(at16.water).toBe(240)
+    expect(at16.rows.map((r) => r.kind === 'pour' && [r.pourTo, r.amount])).toEqual([
+      [45, 45],
+      [100, 55],
+      [240, 140],
+    ])
+    expect(at16.problem).toBeNull()
+    expect(brewRows({ ...draftFromRecipe(recipe({ steps }), 'b1'), dose: 6 }).problem).toMatch(/90 g/)
   })
   it('rounds awkward water and still adds up', () => {
     const { water, rows } = brewRows(draftFromRecipe(recipe({ dose_grams: 15.5, ratio: 16.5 }), 'b1'))

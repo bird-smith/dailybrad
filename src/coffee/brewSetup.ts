@@ -2,7 +2,7 @@ import { splitFinished } from './beanList'
 import { formatClock } from './clock'
 import { TEMP_UNIT } from './recipeForm'
 import { formatOneDecimal, groupRecipes } from './recipeList'
-import { pourTargets, totalWater } from './recipeMath'
+import { pourTargets, poursProblem, totalWater } from './recipeMath'
 import type { Bean, Method, Recipe, RecipeStep } from './types'
 
 export const DOSE_STEP = 0.5
@@ -44,11 +44,13 @@ export function draftFromRecipe(recipe: Recipe, beanId: string): BrewDraft {
   }
 }
 
-/** Water in whole grams, and each row in order: pours with running total and amount. */
-export function brewRows(draft: BrewDraft): { water: number; rows: BrewRow[] } {
+/** Water in whole grams, each row in order (pours with running total and amount), and a
+ *  sentence when the pours don't fit the water. */
+export function brewRows(draft: BrewDraft): { water: number; rows: BrewRow[]; problem: string | null } {
   const water = Math.round(totalWater(draft.dose, draft.ratio))
   const targets = pourTargets(
-    draft.steps.flatMap((step) => (step.kind === 'pour' ? [step.percent] : [])),
+    draft.steps.flatMap((step) => (step.kind === 'pour' ? [step] : [])),
+    draft.dose,
     water,
   )
   let pourNumber = 0
@@ -57,7 +59,7 @@ export function brewRows(draft: BrewDraft): { water: number; rows: BrewRow[] } {
       ? { kind: 'pour', ...targets[pourNumber++], at: step.at }
       : { kind: 'action', text: step.text, at: step.at },
   )
-  return { water, rows }
+  return { water, rows, problem: poursProblem(targets, water) }
 }
 
 export function stepDose(dose: number, direction: 1 | -1): number {
