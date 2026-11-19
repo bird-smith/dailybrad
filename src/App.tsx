@@ -2,6 +2,8 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router'
 import AuthGate from './auth/AuthGate'
 import BeanScreen from './coffee/BeanScreen'
 import BeansScreen from './coffee/BeansScreen'
+import BrewChooseScreen from './coffee/BrewChooseScreen'
+import BrewScreen from './coffee/BrewScreen'
 import CoffeeHome from './coffee/CoffeeHome'
 import MethodsScreen from './coffee/MethodsScreen'
 import RecipeScreen from './coffee/RecipeScreen'
@@ -18,7 +20,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to={HOME} replace />} />
           <Route path="/coffee" element={<CoffeeHome />} />
-          <Route path="/coffee/brew" element={<NotBuiltYet />} />
+          <Route path="/coffee/brew" element={<BrewChooseScreen />} />
+          <Route path="/coffee/brew/:recipeId/:beanId" element={<BrewScreen />} />
           <Route path="/coffee/beans" element={<BeansScreen />} />
           <Route path="/coffee/beans/:id" element={<BeanScreen />} />
           <Route path="/coffee/methods" element={<MethodsScreen />} />

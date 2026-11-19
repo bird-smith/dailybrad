@@ -1,6 +1,7 @@
 import { db, run, type DataResult } from '../lib/dataResult'
+import { listBeans } from './beansData'
 import { listMethods } from './methodsData'
-import type { Method, Recipe, RecipeValues } from './types'
+import type { Bean, Method, Recipe, RecipeValues } from './types'
 
 export const listRecipes = () => run<Recipe[]>(db().from('recipes').select('*'))
 
@@ -22,4 +23,15 @@ export async function loadMethodsAndRecipes(): Promise<DataResult<{ methods: Met
   if (!methods.ok) return methods
   if (!recipes.ok) return recipes
   return { ok: true, data: { methods: methods.data, recipes: recipes.data } }
+}
+
+/** Methods, beans and recipes together, for Choose a brew. */
+export async function loadBrewThings(): Promise<
+  DataResult<{ methods: Method[]; beans: Bean[]; recipes: Recipe[] }>
+> {
+  const [methods, beans, recipes] = await Promise.all([listMethods(), listBeans(), listRecipes()])
+  if (!methods.ok) return methods
+  if (!beans.ok) return beans
+  if (!recipes.ok) return recipes
+  return { ok: true, data: { methods: methods.data, beans: beans.data, recipes: recipes.data } }
 }
