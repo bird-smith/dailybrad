@@ -1,6 +1,9 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router'
 import AuthGate from './auth/AuthGate'
+import BeanScreen from './coffee/BeanScreen'
+import BeansScreen from './coffee/BeansScreen'
 import CoffeeHome from './coffee/CoffeeHome'
+import MethodsScreen from './coffee/MethodsScreen'
 import NotBuiltYet from './components/NotBuiltYet'
 
 // Where the bare site address goes. Change this one line when there is more than coffee.
@@ -14,7 +17,9 @@ export default function App() {
           <Route path="/" element={<Navigate to={HOME} replace />} />
           <Route path="/coffee" element={<CoffeeHome />} />
           <Route path="/coffee/brew" element={<NotBuiltYet />} />
-          <Route path="/coffee/beans" element={<NotBuiltYet />} />
+          <Route path="/coffee/beans" element={<BeansScreen />} />
+          <Route path="/coffee/beans/:id" element={<BeanScreen />} />
+          <Route path="/coffee/methods" element={<MethodsScreen />} />
           <Route path="/coffee/recipes" element={<NotBuiltYet />} />
           <Route path="/coffee/history" element={<NotBuiltYet />} />
           <Route path="*" element={<Navigate to="/" replace />} />

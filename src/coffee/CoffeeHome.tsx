@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { supabase } from '../lib/supabase'
+import ActiveBeanCard from './ActiveBeanCard'
 
 const LINKS = [
   { to: '/coffee/beans', label: 'Beans' },
@@ -17,6 +18,7 @@ export default function CoffeeHome() {
       <header>
         <h1 className="font-serif text-4xl">Coffee</h1>
         <p className="mt-1 text-muted">{today}</p>
+        <ActiveBeanCard />
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-8 py-12">
