@@ -21,7 +21,7 @@ export default function App() {
           <Route path="/" element={<Navigate to={HOME} replace />} />
           <Route path="/coffee" element={<CoffeeHome />} />
           <Route path="/coffee/brew" element={<BrewChooseScreen />} />
-          <Route path="/coffee/brew/:recipeId/:beanId" element={<BrewScreen />} />
+          <Route path="/coffee/brew/:recipeId/:beanId/:fromBrewId?" element={<BrewScreen />} />
           <Route path="/coffee/beans" element={<BeansScreen />} />
           <Route path="/coffee/beans/:id" element={<BeanScreen />} />
           <Route path="/coffee/methods" element={<MethodsScreen />} />

@@ -7,8 +7,8 @@ import type { DataResult } from '../lib/dataResult'
 import { useLoad } from '../lib/useLoad'
 import { getBean } from './beansData'
 import { brewRows, changedSettings, draftFromRecipe, settingsSummary, stepDose, type BrewDraft } from './brewSetup'
-import { brewToSave } from './brewLog'
-import { addBrew } from './brewsData'
+import { brewDayLabel, brewToSave } from './brewLog'
+import { addBrew, getBrew } from './brewsData'
 import BrewTimerView from './BrewTimerView'
 import { useBrewTimer } from './useBrewTimer'
 import { formatClock, parseClock } from './clock'
@@ -24,23 +24,37 @@ import {
 } from './recipeForm'
 import { formatOneDecimal } from './recipeList'
 import { getRecipe } from './recipesData'
+import { startingDraft } from './recommendations'
 import { daysSinceRoast, roastAgeLabel } from './roastAge'
-import type { Bean, Method, Recipe } from './types'
+import type { Bean, Brew as SavedBrew, Method, Recipe } from './types'
 
-type Loaded = { recipe: Recipe | null; bean: Bean | null; methods: Method[] }
+type Loaded = { recipe: Recipe | null; bean: Bean | null; methods: Method[]; fromBrew: SavedBrew | null }
 
-async function loadBrew(recipeId: string, beanId: string): Promise<DataResult<Loaded>> {
-  const [recipe, bean, methods] = await Promise.all([getRecipe(recipeId), getBean(beanId), listMethods()])
+const noBrew = Promise.resolve({ ok: true, data: null } as const)
+
+async function loadBrew(recipeId: string, beanId: string, fromBrewId: string): Promise<DataResult<Loaded>> {
+  const [recipe, bean, methods, fromBrew] = await Promise.all([
+    getRecipe(recipeId),
+    getBean(beanId),
+    listMethods(),
+    fromBrewId ? getBrew(fromBrewId) : noBrew,
+  ])
   if (!recipe.ok) return recipe
   if (!bean.ok) return bean
   if (!methods.ok) return methods
-  return { ok: true, data: { recipe: recipe.data, bean: bean.data, methods: methods.data } }
+  if (!fromBrew.ok) return fromBrew
+  return { ok: true, data: { recipe: recipe.data, bean: bean.data, methods: methods.data, fromBrew: fromBrew.data } }
 }
 
 // The screen he reads at the kettle: dose, water and each pour, scaled. Nothing is saved.
+// With a brew id at the end of the address (Repeat), it starts as that brew.
 export default function BrewScreen() {
-  const { recipeId = '', beanId = '' } = useParams()
-  const { result, reload } = useLoad(() => loadBrew(recipeId, beanId), 'this recipe', [recipeId, beanId])
+  const { recipeId = '', beanId = '', fromBrewId = '' } = useParams()
+  const { result, reload } = useLoad(
+    () => loadBrew(recipeId, beanId, fromBrewId),
+    'this recipe',
+    [recipeId, beanId, fromBrewId],
+  )
   const data = result.state === 'loaded' ? result.data : null
 
   return (
@@ -50,9 +64,11 @@ export default function BrewScreen() {
       {data?.recipe && !data.bean && <p className="mt-8 text-muted">This bean isn't here any more.</p>}
       {data?.recipe && data.bean && (
         <Brew
-          key={`${recipeId}/${beanId}`}
+          key={`${recipeId}/${beanId}/${fromBrewId}`}
           recipe={data.recipe}
           bean={data.bean}
+          fromBrewId={fromBrewId}
+          fromBrew={data.fromBrew}
           methodName={data.methods.find((m) => m.id === data.recipe!.method_id)?.name ?? ''}
         />
       )}
@@ -62,13 +78,13 @@ export default function BrewScreen() {
 
 type Boxes = { ratio: string; grinder: string; grindSize: string; temperature: string; bloom: string }
 
-function boxesFromRecipe(recipe: Recipe): Boxes {
+function boxesFromDraft(draft: BrewDraft): Boxes {
   return {
-    ratio: formatOneDecimal(recipe.ratio),
-    grinder: recipe.grinder ?? '',
-    grindSize: recipe.grind_size ?? '',
-    temperature: recipe.temperature === null ? '' : String(recipe.temperature),
-    bloom: recipe.bloom_seconds === null ? '' : formatClock(recipe.bloom_seconds),
+    ratio: formatOneDecimal(draft.ratio),
+    grinder: draft.grinder ?? '',
+    grindSize: draft.grindSize ?? '',
+    temperature: draft.temperature === null ? '' : String(draft.temperature),
+    bloom: draft.bloomSeconds === null ? '' : formatClock(draft.bloomSeconds),
   }
 }
 
@@ -77,11 +93,23 @@ const BIG_ROUND =
   'press flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-line text-3xl ' +
   'text-ink disabled:opacity-40'
 
-function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; methodName: string }) {
-  const [doseText, setDoseText] = useState(formatOneDecimal(recipe.dose_grams))
+type BrewProps = { recipe: Recipe; bean: Bean; methodName: string; fromBrewId: string; fromBrew: SavedBrew | null }
+
+function Brew({ recipe, bean, methodName, fromBrewId, fromBrew }: BrewProps) {
+  // Where today starts: the recipe, or (Repeat) a copy of that brew. "Use recipe settings"
+  // switches it back to the recipe as it is now.
+  const [start, setStart] = useState(() => startingDraft(recipe, bean.id, fromBrew))
+  const [doseText, setDoseText] = useState(formatOneDecimal(start.draft.dose))
   const [typingDose, setTypingDose] = useState(false)
-  const [boxes, setBoxes] = useState<Boxes>(() => boxesFromRecipe(recipe))
+  const [boxes, setBoxes] = useState<Boxes>(() => boxesFromDraft(start.draft))
   const [changing, setChanging] = useState(false)
+
+  function backToRecipe() {
+    const fromRecipe = draftFromRecipe(recipe, bean.id)
+    setStart({ draft: fromRecipe, repeating: false })
+    setBoxes(boxesFromDraft(fromRecipe))
+    setDoseText(formatOneDecimal(fromRecipe.dose))
+  }
 
   const dose = checkDose(doseText)
   const checks = {
@@ -92,7 +120,7 @@ function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; method
     bloom: checkBloom(boxes.bloom),
   }
   // Today's brew. A box with a mistake falls back to the recipe's value until fixed.
-  const base = draftFromRecipe(recipe, bean.id)
+  const base = start.draft
   const draft: BrewDraft = {
     ...base,
     dose: valueOr(dose, base.dose),
@@ -183,6 +211,14 @@ function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; method
         </div>
       )}
       <p className="mt-1 text-muted">{[methodName, bean.name, age].filter(Boolean).join(' · ')}</p>
+      {start.repeating && fromBrew && (
+        <p className="mt-1 text-sm text-muted tabular-nums">
+          Repeating your last brew · {brewDayLabel(fromBrew.brewed_at, new Date())}
+        </p>
+      )}
+      {fromBrewId && fromBrew?.recipe_id !== recipe.id && (
+        <p className="mt-1 text-sm text-muted">That brew isn't here any more, so this starts from the recipe.</p>
+      )}
 
       <div className="mt-10 flex items-center justify-between gap-2">
         <button type="button" aria-label="Less coffee" disabled={dose.ok && draft.dose <= 1} onClick={() => step(-1)} className={BIG_ROUND}>
@@ -250,7 +286,7 @@ function Brew({ recipe, bean, methodName }: { recipe: Recipe; bean: Bean; method
             <TodayBox label="Grind size" value={boxes.grindSize} onChange={setBox('grindSize')} check={checks.grindSize} recipeValue={changed.grindSize} />
             <TodayBox label={`Temperature (${TEMP_UNIT})`} inputMode="numeric" value={boxes.temperature} onChange={setBox('temperature')} check={checks.temperature} recipeValue={changed.temperature} />
             <TodayBox label="Bloom" inputMode="numeric" value={boxes.bloom} onChange={setBox('bloom')} check={checks.bloom} recipeValue={changed.bloomSeconds} />
-            <button type="button" onClick={() => setBoxes(boxesFromRecipe(recipe))} className={QUIET_LINK}>
+            <button type="button" onClick={backToRecipe} className={QUIET_LINK}>
               Use recipe settings
             </button>
           </div>
