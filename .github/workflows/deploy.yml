@@ -36,5 +36,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+      # GitHub sometimes can't see the just-uploaded files yet; a short wait avoids that.
+      - run: sleep 15
       - id: deployment
         uses: actions/deploy-pages@v5
