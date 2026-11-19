@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import ErrorLine from '../components/ErrorLine'
 import { LoadFailed, QUIET_LINK, Screen } from '../components/ui'
+import type { DataResult } from '../lib/dataResult'
 import { useLoad } from '../lib/useLoad'
 import { brewChoices } from './brewSetup'
+import { getLatestBrewForMethod, getRecipeRatings } from './brewsData'
 import { recipeSummary } from './recipeList'
 import { loadBrewThings } from './recipesData'
+import { rankRecipes, ratingLine, recommendedId, repeatChoice } from './recommendations'
+import RepeatCard from './RepeatCard'
 import { daysSinceRoast, roastAgeLabel } from './roastAge'
-import type { Bean, Method, Recipe } from './types'
+import type { Bean, Brew, Method, Recipe, RecipeRating } from './types'
 
 export default function BrewChooseScreen() {
   const { result, reload } = useLoad(loadBrewThings, 'your coffee things')
@@ -99,44 +104,92 @@ function Choices({ methods, beans, recipes }: { methods: Method[]; beans: Bean[]
         )}
       </section>
 
-      {group && (
-        <section className="mt-8">
-          <h2 className="text-sm text-muted">Recipe</h2>
-          {group.recipes.length === 0 ? (
+      {group &&
+        (group.recipes.length === 0 ? (
+          <section className="mt-8">
+            <h2 className="text-sm text-muted">Recipe</h2>
             <div className="mt-1">
               <p>No recipes for {group.method.name} yet.</p>
               <Link to="/coffee/recipes/new" className={QUIET_LINK}>
                 Add recipe
               </Link>
             </div>
-          ) : (
-            <>
-              {!bean && <p className="mt-1">Choose a bean first.</p>}
-              <ul className={`mt-1 divide-y divide-line border-y border-line ${bean ? '' : 'opacity-50'}`}>
-                {group.recipes.map((recipe) => {
-                  const inner = (
-                    <>
-                      <span className="block truncate font-serif text-xl">{recipe.name}</span>
-                      <span className="block text-sm text-muted tabular-nums">{recipeSummary(recipe)}</span>
-                    </>
-                  )
-                  return (
-                    <li key={recipe.id}>
-                      {bean ? (
-                        <Link to={`/coffee/brew/${recipe.id}/${bean.id}`} className="block min-h-12 py-3">
-                          {inner}
-                        </Link>
-                      ) : (
-                        <div className="min-h-12 py-3">{inner}</div>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
-          )}
-        </section>
-      )}
+          </section>
+        ) : (
+          // Keyed by method, so a new method shows "Loading…" rather than the last one's ranking.
+          <MethodRecipes key={group.method.id} methodId={group.method.id} recipes={group.recipes} bean={bean} />
+        ))}
+    </>
+  )
+}
+
+type Suggestions = { latest: Brew | null; ratings: RecipeRating[] }
+
+async function loadSuggestions(methodId: string, beanId: string | null): Promise<DataResult<Suggestions>> {
+  const [latest, ratings] = await Promise.all([getLatestBrewForMethod(methodId), getRecipeRatings(methodId, beanId)])
+  if (!latest.ok) return latest
+  if (!ratings.ok) return ratings
+  return { ok: true, data: { latest: latest.data, ratings: ratings.data } }
+}
+
+// The Repeat card, then recipes ranked by rating. If the ranking can't load, the recipes
+// stay A to Z and tappable: brewing is never blocked by it.
+function MethodRecipes({ methodId, recipes, bean }: { methodId: string; recipes: Recipe[]; bean: Bean | null }) {
+  const beanId = bean?.id ?? null
+  const { result, reload } = useLoad(() => loadSuggestions(methodId, beanId), 'ratings', [methodId, beanId])
+  const data = result.state === 'loaded' ? result.data : null
+  const ranked = data ? rankRecipes(recipes, data.ratings) : null
+  const recommended = ranked ? recommendedId(ranked) : null
+  const rows = ranked
+    ? ranked.map((row) => ({ recipe: row.recipe, line: ratingLine(row) }))
+    : recipes.map((recipe) => ({ recipe, line: null }))
+  const repeat = data ? repeatChoice(data.latest, recipes) : null
+  const repeatName = recipes.find((r) => r.id === repeat?.recipe_id)?.name ?? ''
+
+  return (
+    <>
+      {repeat && <RepeatCard brew={repeat} recipeName={repeatName} beanId={beanId} />}
+      <section className="mt-8">
+        <h2 className="text-sm text-muted">Recipe</h2>
+        {result.state === 'loading' ? (
+          <p className="mt-1 text-muted">Loading…</p>
+        ) : (
+          <>
+            {result.state === 'failed' && (
+              <div className="mt-1">
+                <ErrorLine message={result.message} />
+                <button type="button" onClick={reload} className={QUIET_LINK}>
+                  Try again
+                </button>
+              </div>
+            )}
+            {!bean && <p className="mt-1">Choose a bean first.</p>}
+            <ul className={`mt-1 divide-y divide-line border-y border-line ${bean ? '' : 'opacity-50'}`}>
+              {rows.map(({ recipe, line }) => {
+                const inner = (
+                  <>
+                    {recipe.id === recommended && <span className="block text-sm text-accent">Recommended</span>}
+                    <span className="block truncate font-serif text-xl">{recipe.name}</span>
+                    <span className="block text-sm text-muted tabular-nums">{recipeSummary(recipe)}</span>
+                    {line && <span className="block text-sm text-muted tabular-nums">{line}</span>}
+                  </>
+                )
+                return (
+                  <li key={recipe.id}>
+                    {bean ? (
+                      <Link to={`/coffee/brew/${recipe.id}/${bean.id}`} className="block min-h-12 py-3">
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div className="min-h-12 py-3">{inner}</div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </>
+        )}
+      </section>
     </>
   )
 }
