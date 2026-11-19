@@ -46,5 +46,26 @@ export type Recipe = {
 
 export type RecipeValues = Omit<Recipe, 'id' | 'created_at'>
 
+// Written by hand to match supabase/migrations/004-brews.sql.
+export type Brew = {
+  id: string
+  brewed_at: string
+  bean_id: string
+  method_id: string
+  /** null once the recipe is deleted; recipe_name keeps what it was called. */
+  recipe_id: string | null
+  recipe_name: string
+  dose_grams: number
+  ratio: number
+  grinder: string | null
+  grind_size: string | null
+  temperature: number | null
+  bloom_seconds: number | null
+  brew_seconds: number | null
+  steps: RecipeStep[]
+}
+
+export type BrewValues = Omit<Brew, 'id' | 'brewed_at'>
+
 /** The parts of a bean he types in. */
 export type BeanValues = Omit<Bean, 'id' | 'finished' | 'is_active' | 'created_at'>
