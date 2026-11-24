@@ -14,6 +14,12 @@ export function listBrews(offset: number, filter: HistoryFilter = {}) {
   return run<Brew[]>(query.order('brewed_at', { ascending: false }).range(offset, offset + HISTORY_PAGE - 1))
 }
 
+export const RECENT_BREWS = 3
+
+/** The newest few brews for the home screen, newest first. */
+export const listRecentBrews = () =>
+  run<Brew[]>(db().from('brews').select('*').order('brewed_at', { ascending: false }).limit(RECENT_BREWS))
+
 /** null when no brew has that id. */
 export const getBrew = (id: string) => run<Brew | null>(db().from('brews').select('*').eq('id', id).maybeSingle())
 

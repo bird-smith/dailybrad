@@ -43,8 +43,9 @@ beautiful object to use, not a spreadsheet.
   of averages. Next to the note are optional one-tap taste words ("sour", "bitter", "weak",
   "strong", "balanced") so I can say what was off without typing.
 - **Home screen:** Opens straight to today: my active bean (with days since roast), a
-  "rate me" card if the last brew is unrated, and one large button to start a brew. History,
-  beans and recipes are one tap away, not on top.
+  "rate me" card if the last brew is unrated, my last three brews (method, recipe and
+  rating; tap one for its details), and one large button to start a brew. Below it,
+  methods, recipes, beans and history are one tap away.
 - **Choosing a brew:** I can repeat my latest brew for the chosen method (same recipe, dose
   and grind), try a recommended brew, or choose another saved recipe. I can set an active
   bean, which is selected by default, and switch bags easily.

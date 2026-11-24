@@ -7,7 +7,7 @@ import RatingForm from './RatingForm'
 
 // "How was it?" for the newest brew while it has no rating. Shows nothing while loading,
 // on failure (the bean card already says the site can't load), or once it's rated.
-export default function RateMeCard() {
+export default function RateMeCard({ onRated }: { onRated?: () => void }) {
   const { result } = useLoad(getLatestBrew, 'your last brew')
   const [saved, setSaved] = useState(false)
 
@@ -28,7 +28,10 @@ export default function RateMeCard() {
         {brew.recipe_name} · {brewDayLabel(brew.brewed_at, new Date())}
       </p>
       <div className="mt-3">
-        <RatingForm brewId={brew.id} onSaved={() => setSaved(true)} />
+        <RatingForm brewId={brew.id} onSaved={() => {
+            setSaved(true)
+            onRated?.()
+          }} />
       </div>
     </section>
   )
